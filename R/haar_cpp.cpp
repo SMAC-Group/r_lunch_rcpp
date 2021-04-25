@@ -55,6 +55,7 @@ arma::colvec wvar_cpp(arma::vec Xt) {
     wvariance.row(i) = haar_coef.t() * haar_coef / haar_coef.n_elem;
   }
   return wvariance;
+  
 }
 
 
