@@ -140,6 +140,15 @@ myBib <- ReadBib("assets/example.bib", check = FALSE)
 
 
 ---
+
+# Parallelisation with openMPI
+
+
+---
+
+# To go further (Ressources)
+
+---
 class: sydney-blue, center, middle
 
 
