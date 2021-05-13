@@ -25,6 +25,7 @@ output:
 
 @Sam for an introduction to xaringan, see
 
+
 https://spcanelon.github.io/xaringan-basics-and-beyond/
 
 and
@@ -235,7 +236,7 @@ Unit: seconds
 
 
 ---
-# A brief introduction to `C++` and `Rcpp`
+# Introduction to `C++` and `Rcpp`
 
 <blockquote>
 
@@ -305,7 +306,7 @@ RETURN_TYPE FUNCTION_NAME(ARGUMENT_TYPE ARGUMENT){
 
 
 ---
-# `C++` and `Rcpp` synthax 
+# Basic `C++` and `Rcpp` syntax 
 
 `Rcpp` provides a high-level syntax for declaring `C++` functions easily. Here are some example comparing `R` and `Rcpp` syntax for basic operations.
 
@@ -313,8 +314,11 @@ RETURN_TYPE FUNCTION_NAME(ARGUMENT_TYPE ARGUMENT){
 
 | Operation| R |Rcpp|
 |:---:|:---:|:---:|
-| Vector constructor | `vector(mode = "numeric", length = 5)` | `NumericVector xx(5);` |
-| Matrix constructor |`X = matrix(0,10,10)` |`NumericMatrix xx(5, 5);`|
+| Vector constructor | `x = vector(mode = "numeric", length = 5)` | `NumericVector x(5);` |
+| Vector indexing | `x[1]` | `x(0);` |
+| Matrix constructor |`X = matrix(0,10,10)` |`NumericMatrix X(5, 5);`|
+| Matrix indexing | `X[1,1]` | `X(0,0);` |
+| DataFrame constructor |`df = data.frame("V1" = v1, "V2"= v2)`| `DataFrame df = DataFrame::create( Named("V1") = v1 , _["V2"] = v2 );`|
 
 
 
@@ -438,11 +442,11 @@ int fibo_cpp(int n) {
 # Including support for `Armadillo`  .pull-right-narrow[![](assets/armadillo_logo2.png)]
 
 
-In addition to the functions provided by `Rcpp` and the `C++` standard library `std::`, one can also make use of high quality `C++` linear algebra libraries such as `Armadillo` and `Eigen` with respectively `R` package `RcppArmadillo` and `RcppEigen`. We present here how to use the `Armadillo` library. Once `RcppArmadillo` has been installed with 
+In addition to the functions provided by `Rcpp` and the `C++` standard library `std::`, one can also make use of `C++` linear algebra libraries such as `Armadillo` and `Eigen` with respectively `R` package `RcppArmadillo` and `RcppEigen`. Such libraries provides high-level syntax and efficient functions to work with data that can be stored in vectors, matrices, cubes, dense and sparse matrices. We present here how to use the `Armadillo` library. 
 
 
 ```{r, eval =F}
-install.packages("RcppArmadillo")
+install.packages("RcppArmadillo") # install RcppArmadillo
 ```
 
 One can source a `.cpp` file that make use of `Armadillo` by specifying the following arguments in the header of the `.cpp` file:
@@ -460,12 +464,12 @@ using namespace Rcpp;  #<<
 # How `RcppArmadillo` works
 
 ---
-# Armadillo basic synthax
+# Armadillo basic syntax
 
 | Operation| R |Armadillo|
 |:---:|:---:|:---:|
 | Matrix constructor |`X = matrix(1,10,10)` |`X = ones(10,10)`|
-|Matrix indexing | `X[1,1] `| `X(1,1)`| 
+|Matrix indexing | `X[1,1] `| `X(0,0)`| 
 |Matrix dimensions | `nrow(X)` and `ncol(X)`| `X.n_rows` and `X.n_cols` | 
 |Matrix joins operations | `X = cbind(A, B)` and `X = rbind(A, B)`| `X = join_horiz(A,B)` and `X = join_vert(A,B)` |
 
@@ -476,12 +480,23 @@ using namespace Rcpp;  #<<
 
 
 ---
-# Use case: Haar Wavelet Variance
+# Use case: The Haar Wavelet Variance
 
-We here consider a real case application of transferring `R` code in `C++` code.
-For this example, we will conside the **Haar Wavelet Variance**.
+We here consider a real case application of rewriting `R` code in `C++` code.
+For this example, we will consider a naive implementation of an estimator of the **Haar Wavelet Variance**.
 
-This statistical quantity is used in the context of inference of latent stochastic models used in time series analysis. The algorithm to 
+This statistical quantity is used in the context of inference of latent stochastic models used in time series analysis. A basic algorithm to compute an estimator of this quantity provide an interesting use case as it provide an example on how to mix the use of different `Rcpp` functions and `arma::` classes.
+
+The interesting property of this quantity is that it has a one to one mapping to the vector of parameter of interest $\boldsymbol{\theta_0}$.
+
+
+---
+# Use case: The Haar Wavelet Variance
+The algorithm
+<!-- ![](assets/wvar_graph.png) -->
+<div align = "center">
+<img src="assets/wvar_graph.png" width="70%"/>
+</div>
 
 
 
