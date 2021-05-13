@@ -1,6 +1,6 @@
 ---
 title: "R lunchs: Extending R with C++"
-subtitle: "A brief introduction to Rcpp and Armadillo"
+subtitle: "An introduction to performance computing with Rcpp and Armadillo"
 author: "Lionel Voirol & Samuel Orso"
 date: "17 May 2021"
 output:
