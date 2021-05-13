@@ -378,7 +378,7 @@ slides > slide {
     color: white;
 }
 .title-slide h2:nth-of-type(1) {
-    color: my-darkorange;
+    color: #fca030;
 }
 
 .pull-right-narrow {
