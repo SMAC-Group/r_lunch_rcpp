@@ -5,7 +5,7 @@
     <meta charset="utf-8" />
     <meta name="author" content="Lionel Voirol &amp; Samuel Orso" />
     <meta name="date" content="2021-05-03" />
-    <script src="slides_r_lunch_rcpp_files/header-attrs-2.7/header-attrs.js"></script>
+    <script src="slides_r_lunch_rcpp_files/header-attrs-2.8/header-attrs.js"></script>
     <link href="slides_r_lunch_rcpp_files/remark-css-0.0.1/default.css" rel="stylesheet" />
     <script type="text/x-mathjax-config">
       MathJax.Hub.Config({
@@ -154,8 +154,8 @@ microbenchmark::microbenchmark(f1)
 
 ```
 ## Unit: nanoseconds
-##  expr min lq   mean median uq  max neval
-##    f1  34 36 118.89     36 37 8091   100
+##  expr min lq  mean median uq  max neval
+##    f1  35 36 57.45     37 38 2018   100
 ```
 
 These results summarize how long each query took: the minimum (`min`), lower and upper quartiles (`lq` and `uq`, respectively) and the mean, median and maximum, for each of the number of evaluations (`neval`, with the default value of 100 used in this case). `cld` reports the relative rank of each row in the form of 'compact letter display'.
@@ -213,16 +213,21 @@ method2 = function(n) {
 
 
 ```r
+n = 1000
 method3 = function(n) seq_len(n)
 microbenchmark(times = 100, unit = "s",  method1(n), method2(n), method3(n))
 ```
 
 ```
 ## Unit: seconds
-##        expr         min           lq          mean       median           uq         max neval cld
-##  method1(n) 0.000250111 0.0002751120 0.00034455718 0.0002916830 0.0003261345 0.003497212   100   b
-##  method2(n) 0.000020778 0.0000223745 0.00006035029 0.0000229870 0.0000255515 0.003458409   100  a 
-##  method3(n) 0.000000471 0.0000005790 0.00001336807 0.0000010155 0.0000016830 0.001153712   100  a
+##        expr         min          lq          mean       median           uq
+##  method1(n) 0.001225958 0.001331874 0.00460658043 0.0014686460 0.0016835375
+##  method2(n) 0.000045680 0.000048862 0.00008852270 0.0000543705 0.0000622495
+##  method3(n) 0.000000407 0.000000560 0.00001243676 0.0000008815 0.0000012790
+##          max neval cld
+##  0.282799658   100   a
+##  0.003188617   100   a
+##  0.001088692   100   a
 ```
 
 
@@ -245,6 +250,8 @@ Rcpp is a package that enables you to implement R functions in C++. It is easy t
 
 - `evalCpp()` 
 
+
+
 ---
 # Embedding `Rcpp` code in `R`
 `sourceCpp()` let you source and compile a `.cpp` file inside of an `R` environment.
@@ -256,7 +263,7 @@ sourceCpp("cpp_file.cpp")
 
 `cppFunction` let you write an `Rcpp` function directly inside of an `R` environment, for example:
 
-```cpp
+```r
 cppFunction('int add(int x, int y, int z) {
   int sum = x + y + z;
   return sum;
@@ -293,17 +300,24 @@ RETURN_TYPE FUNCTION_NAME(ARGUMENT_TYPE ARGUMENT){
 `#include&lt;Rcpp.h&gt; ` enables you to use classes and functions defined by the `Rcpp` package.
 `using namespace Rcpp;` specify the namespace. One could omit this argument in the header and prefix all functions and objects defined by `Rcpp` with `Rcpp::`.
 
+---
+
+
+
 
 ---
-# `C++` and `Rcpp` synthax (simple examples)
+# `C++` and `Rcpp` synthax 
 
-`Rcpp` provides a high-level synthax for declaring `C++` functions easily. Here are some example comparing `R` and `Rcpp` synthax.
+`Rcpp` provides a high-level syntax for declaring `C++` functions easily. Here are some example comparing `R` and `Rcpp` syntax.
 
 .pull-left[
 ### `R` code
 
 .scroll-box-14[
 
+```r
+# declaring a vector
+```
 ]]
 .pull-right[
 ### `C++` code
@@ -317,12 +331,113 @@ RETURN_TYPE FUNCTION_NAME(ARGUMENT_TYPE ARGUMENT){
 
 ---
 
+# Correspondance of data type between `R`, `Rcpp` and `C++`
+
+|Value | R vector|Rcpp vector|Rcpp matrix|Rcpp scalar|C++ scalar|
+|:---:|:---:|:---:|:---:|:---:|:---:|
+|Logical|`logical`  |`LogicalVector`| `LogicalMatrix`| - |`bool`|
+|Integer|`integer`  |`IntegerVector`|`IntegerMatrix`|-|`int`|
+|Real|`numeric` |`NumericVector`|`NumericMatrix`|-|`double`|
+|Complex|`complex`  |`ComplexVector`| `ComplexMatrix`|`Rcomplex`|`complex`|
+|String|`character`|`CharacterVector` (`StringVector`)| `CharacterMatrix` (`StringMatrix`)|`String`|`string`|
+|Date  |`Date`     |`DateVector`|-|`Date`|-|
+|Datetime  |`POSIXct`  |`DatetimeVector`|-| `Datetime` | `time_t` |
 ---
 # `Rcpp sugar`
 
-The `Rcpp` library provide a variety of `R`-style 
+The `Rcpp` library provide a variety of already implemented functions that mimics `R` functions.
 
 
+
+
+
+
+
+---
+# Rewriting `R` code in `Rcpp` (examples of functions)
+
+.pull-left[.scroll-box-20[
+
+`R` code
+
+```r
+# cumulative sum of a vector
+cumsum(x)
+
+# row means of a matrix
+rowMeans(X)
+
+# lag difference 
+diff(x,1)
+
+# Fibonacci sequence
+fibo_r &lt;- function(n) {
+  if (n &lt; 2) return(n)
+  return(fibo_r(n-1) + fibo_r(n-2))
+}
+```
+]]
+.pull-right[
+`C++` code
+
+.scroll-box-20[
+
+```cpp
+// cumulative sum of a vector
+// [[Rcpp::export]]
+NumericVector cumsum_rcpp(NumericVector x) {
+  double acc = 0;
+  // init an accumulator var
+  NumericVector res(x.size());
+  // init result vector
+  for (int i = 0; i &lt; x.size(); i++){ 
+    acc += x[i];
+    res[i] = acc;
+  }
+  return res;
+}
+
+
+// row means of a matrix
+// [[Rcpp::export]]
+NumericVector row_means_cpp( NumericMatrix&amp; X ) {
+  
+  int nRows = X.nrow();
+  NumericVector out = no_init(nRows);
+  
+  for( int i=0; i &lt; nRows; i++ ) {
+    NumericMatrix::Row tmp = X(i, _);
+    out[i] = do_mean( tmp );
+  }
+  
+  return out;
+  
+}
+
+// lag difference 
+// [[Rcpp::export]]
+NumericVector diff_lag_cpp(NumericVector x, int lag = 1) {
+  int n = x.size();
+  
+  if (lag &gt;= n) stop("`lag` must be less than `length(x)`.");
+  
+  NumericVector out(n - lag);
+  
+  for (int i = lag; i &lt; n; i++) {
+    out[i - lag] = x[i] - x[i - lag];
+  }
+  return out;
+}
+
+// Fibonacci sequence
+// [[Rcpp::export]]
+int fibo_cpp(int n) {
+  if (n &lt; 2) return(n);
+  return(fibo_cpp(n-1) + fibo_cpp(n-2)); 
+}
+
+```
+]]
 
 
 
@@ -363,17 +478,14 @@ One can source a `.cpp` file that make use of `Armadillo` by specifying the foll
 
 We here consider a real case application of transferring `R` code in `C++` code.
 
-For this example, we will conside the Haar Wavelet Variance.
+For this example, we will conside the **Haar Wavelet Variance**.
 
-This statistical quantity is used in the context of inference for latent 
+This statistical quantity is used in the context of inference of latent stochastic models used in time series analysis. 
 
-- What is the haar wavelet variance
 
-- What is it used for
 
-- Why we consider this example
 
-- Explain computation algorithm
+
 
 ---
 # Use case: The Haar Wavelet Variance 

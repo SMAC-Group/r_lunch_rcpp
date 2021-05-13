@@ -198,7 +198,8 @@ method2 = function(n) {
 ]]
 
 
-```{r}
+```{r, cache =T}
+n = 1000
 method3 = function(n) seq_len(n)
 microbenchmark(times = 100, unit = "s",  method1(n), method2(n), method3(n))
 ```
@@ -223,6 +224,8 @@ Rcpp is a package that enables you to implement R functions in C++. It is easy t
 
 - `evalCpp()` 
 
+
+
 ---
 # Embedding `Rcpp` code in `R`
 `sourceCpp()` let you source and compile a `.cpp` file inside of an `R` environment.
@@ -232,7 +235,7 @@ sourceCpp("cpp_file.cpp")
 
 
 `cppFunction` let you write an `Rcpp` function directly inside of an `R` environment, for example:
-```{Rcpp, eval =F}
+```{r, eval =F}
 cppFunction('int add(int x, int y, int z) {
   int sum = x + y + z;
   return sum;
@@ -244,7 +247,7 @@ cppFunction('int add(int x, int y, int z) {
 
 
 `evalCpp()` let you evaluate a single `C++` statement inside of an `R` environment.
-```{R, eval =F}
+```{r, eval =F}
 evalCpp('std::numeric_limits<double>::max()')
 ```
 
@@ -269,17 +272,23 @@ RETURN_TYPE FUNCTION_NAME(ARGUMENT_TYPE ARGUMENT){
 `#include<Rcpp.h> ` enables you to use classes and functions defined by the `Rcpp` package.
 `using namespace Rcpp;` specify the namespace. One could omit this argument in the header and prefix all functions and objects defined by `Rcpp` with `Rcpp::`.
 
+---
+
+
+
 
 ---
-# `C++` and `Rcpp` synthax (simple examples)
+# `C++` and `Rcpp` synthax 
 
-`Rcpp` provides a high-level synthax for declaring `C++` functions easily. Here are some example comparing `R` and `Rcpp` synthax.
+`Rcpp` provides a high-level syntax for declaring `C++` functions easily. Here are some example comparing `R` and `Rcpp` syntax.
 
 .pull-left[
 ### `R` code
 
 .scroll-box-14[
 ```{r, eval =F}
+# declaring a vector
+
 
 ```
 ]]
@@ -294,12 +303,114 @@ RETURN_TYPE FUNCTION_NAME(ARGUMENT_TYPE ARGUMENT){
 
 ---
 
+# Correspondance of data type between `R`, `Rcpp` and `C++`
+
+|Value | R vector|Rcpp vector|Rcpp matrix|Rcpp scalar|C++ scalar|
+|:---:|:---:|:---:|:---:|:---:|:---:|
+|Logical|`logical`  |`LogicalVector`| `LogicalMatrix`| - |`bool`|
+|Integer|`integer`  |`IntegerVector`|`IntegerMatrix`|-|`int`|
+|Real|`numeric` |`NumericVector`|`NumericMatrix`|-|`double`|
+|Complex|`complex`  |`ComplexVector`| `ComplexMatrix`|`Rcomplex`|`complex`|
+|String|`character`|`CharacterVector` (`StringVector`)| `CharacterMatrix` (`StringMatrix`)|`String`|`string`|
+|Date  |`Date`     |`DateVector`|-|`Date`|-|
+|Datetime  |`POSIXct`  |`DatetimeVector`|-| `Datetime` | `time_t` |
 ---
 # `Rcpp sugar`
 
-The `Rcpp` library provide a variety of `R`-style 
+The `Rcpp` library provide a variety of already implemented functions that mimics `R` functions.
 
 
+
+
+
+
+
+---
+# Rewriting `R` code in `Rcpp` (examples of functions)
+
+.pull-left[.scroll-box-20[
+
+`R` code
+```{r, eval =F}
+# cumulative sum of a vector
+cumsum(x)
+
+# row means of a matrix
+rowMeans(X)
+
+# lag difference 
+diff(x,1)
+
+# Fibonacci sequence
+fibo_r <- function(n) {
+  if (n < 2) return(n)
+  return(fibo_r(n-1) + fibo_r(n-2))
+}
+
+
+
+```
+]]
+.pull-right[
+`C++` code
+
+.scroll-box-20[
+```{Rcpp, eval =F}
+// cumulative sum of a vector
+// [[Rcpp::export]]
+NumericVector cumsum_rcpp(NumericVector x) {
+  double acc = 0;
+  // init an accumulator var
+  NumericVector res(x.size());
+  // init result vector
+  for (int i = 0; i < x.size(); i++){ 
+    acc += x[i];
+    res[i] = acc;
+  }
+  return res;
+}
+
+
+// row means of a matrix
+// [[Rcpp::export]]
+NumericVector row_means_cpp( NumericMatrix& X ) {
+  
+  int nRows = X.nrow();
+  NumericVector out = no_init(nRows);
+  
+  for( int i=0; i < nRows; i++ ) {
+    NumericMatrix::Row tmp = X(i, _);
+    out[i] = do_mean( tmp );
+  }
+  
+  return out;
+  
+}
+
+// lag difference 
+// [[Rcpp::export]]
+NumericVector diff_lag_cpp(NumericVector x, int lag = 1) {
+  int n = x.size();
+  
+  if (lag >= n) stop("`lag` must be less than `length(x)`.");
+  
+  NumericVector out(n - lag);
+  
+  for (int i = lag; i < n; i++) {
+    out[i - lag] = x[i] - x[i - lag];
+  }
+  return out;
+}
+
+// Fibonacci sequence
+// [[Rcpp::export]]
+int fibo_cpp(int n) {
+  if (n < 2) return(n);
+  return(fibo_cpp(n-1) + fibo_cpp(n-2)); 
+}
+
+```
+]]
 
 
 
@@ -338,17 +449,14 @@ using namespace Rcpp;  #<<
 
 We here consider a real case application of transferring `R` code in `C++` code.
 
-For this example, we will conside the Haar Wavelet Variance.
+For this example, we will conside the **Haar Wavelet Variance**.
 
-This statistical quantity is used in the context of inference for latent 
+This statistical quantity is used in the context of inference of latent stochastic models used in time series analysis. 
 
-- What is the haar wavelet variance
 
-- What is it used for
 
-- Why we consider this example
 
-- Explain computation algorithm
+
 
 ---
 # Use case: The Haar Wavelet Variance 
