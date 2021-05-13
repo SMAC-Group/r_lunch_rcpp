@@ -1,3 +1,10 @@
+
+
+
+
+vector(mode = "numeric", length = 5)
+
+
 library(microbenchmark)
 big_list = list()
 # fill list

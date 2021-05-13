@@ -74,24 +74,15 @@ for(i in seq(4)){
   mat_mean_perf[i, ] = cbind(lst_benchmark[[i]][,4], lst_benchmark[[i]][,2],lst_benchmark[[i]][,7])
 }
 
-save(mat_mean_perf, file = "mat_mean_perf.rda")
+getwd()
+save(mat_mean_perf, file = "data/mat_mean_perf.rda")
 
 t_col <- function(color, percent = 90, name = NULL) {
-  #      color = color name
-  #    percent = % transparency
-  #       name = an optional name for the color
-  
-  ## Get RGB values for named color
   rgb.val <- col2rgb(color)
-  
-  ## Make new color using input color as base and alpha set by transparency
   t.col <- rgb(rgb.val[1], rgb.val[2], rgb.val[3],
                max = 255,
                alpha = (100 - percent) * 255 / 100,
                names = name)
-  
-  ## Save the color
-  # invisible(t.col)
   t.col
 }
 t_col("darkblue")
@@ -99,7 +90,7 @@ t_col("darkorange", percent = .8)
 
 par(mar=c(5,5,1,1))
 plot(x = 10^seq(4), y = mat_mean_perf[,2], 
-     log="xy", type = "b", ylim = c(1, 10e6), xlab = "Sample size",
+     log="x", type = "b", ylim = c(1, 10e6), xlab = "Sample size",
      ylab = "Mean execution time (microseconds)", cex.lab = 1.5, cex.main = 1.5,cex.axis = 1.3,
      col = "darkblue", pch = 16)
 grid(col="grey80", lty=1)
@@ -107,7 +98,7 @@ polygon(x = c(10^seq(4), rev(10^seq(4))), y = c(mat_mean_perf[,3], rev(mat_mean_
 polygon(x = c(10^seq(4), rev(10^seq(4))), y = c(mat_mean_perf[,4], rev(mat_mean_perf[,6])), col = "#00008B19", border = NA)
 lines(x = 10^seq(4), y = mat_mean_perf[,1], type ="b",  col = "darkorange", pch = 16)
 lines(x = 10^seq(4), y = mat_mean_perf[,2], type ="b",  col = "darkblue", pch = 16)
-legend("topleft",col = c("darkorange", "darkblue"), legend= c("CPP", "R"), lwd=1, pch = 16, bty ="n", cex = 1.5)
+legend("topleft",col = c("darkorange", "darkblue"), legend= c("R", "CPP"), lwd=1, pch = 16, bty ="n", cex = 1.5)
 
 
 

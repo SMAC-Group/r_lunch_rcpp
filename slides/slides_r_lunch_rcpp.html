@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="" xml:lang="">
   <head>
-    <title>Extending R with C++</title>
+    <title>R lunchs: Extending R with C++</title>
     <meta charset="utf-8" />
     <meta name="author" content="Lionel Voirol &amp; Samuel Orso" />
     <meta name="date" content="2021-05-17" />
@@ -26,7 +26,7 @@
     <textarea id="source">
 class: center, middle, inverse, title-slide
 
-# Extending R with C++
+# R lunchs: Extending R with C++
 ## A brief introduction to Rcpp and Armadillo
 ### Lionel Voirol &amp; Samuel Orso
 ### 17 May 2021
@@ -70,15 +70,27 @@ also, check about [infinite moon reader](https://yihui.org/en/2019/02/ultimate-i
 
 # Why using `C++` in `R`: Motivations
 
-When working with complex computations in `R`, it is often the case that `R` is simply not fast enough. In such cases, it is interesting to identify where are the bottleneck in a given code rewrite these chunks of code in a lower-level language.
+When working with complex computations in `R`, it is often the case that `R` is simply not fast enough. 
 
-`C++` is a general-purpose programming language developed initially as an extension of the `C` language that included classes. As opposed to `R`, `C++` is a compiled language. `C++` is considered as a benchmark for speed as it is faster than most lower level language such as `Fortran` or `C`.
+&lt;div align="center"&gt;
+&lt;iframe src="https://giphy.com/embed/pFZTlrO0MV6LoWSDXd" width="410" height="208" frameBorder="0" class="giphy-embed" allowFullScreen&gt;&lt;/iframe&gt;&lt;p&gt;&lt;a href="https://giphy.com/gifs/waiting-mr-bean-checking-time-pFZTlrO0MV6LoWSDXd"&gt;via GIPHY&lt;/a&gt;&lt;/p&gt;
+ &lt;/div&gt; 
+&lt;!-- .center[![](assets/wait.gif)] --&gt;
+
+In such cases, it is interesting to identify where are the bottleneck in a given code and rewrite these chunks of code in a lower-level language to benefit from faster execution time.
+
+---
+
+# Why using `C++` in `R`: Motivations
+
+
+`C++` is a general-purpose programming language developed initially as an extension of the `C` language that included classes for object-oriented programming. As opposed to `R` or `python`, `C++` is a compiled language. `C++` benefit of fast execution time and is considered as a benchmark for speed as it is faster than most lower level language such as `Fortran` or `C`.
 
 **Examples of ideal situations where to use `Rcpp` are:**
 
 - Loop operations
 - Recursive functions
-- Complex operations on Big Data
+- Operations on huge datasets
 - Complex algorithms that need advanced data structures and algorithms
 
 
@@ -120,7 +132,7 @@ You can profile `R` code with the use of the packages `Rprof` and `profvis` avai
 install.packages("profvis")
 ```
 
-The synthax to perform a code profiling analysis is then
+The syntax to perform a code profiling analysis is then
 
 ```r
 profvis({
@@ -130,6 +142,11 @@ profvis({
 
 Find examples and instructions [here](https://rstudio.github.io/profvis/).
 
+
+---
+# Profiling `R` code 
+
+&lt;iframe src="https://rstudio.github.io/profvis/examples.html" width="100%" height="460px"&gt;&lt;/iframe&gt;
 
 ---
 # Measuring computation time in `R`
@@ -143,8 +160,7 @@ install.packages("microbenchmark")
 Using the function `microbenchmark` of this package, one can obtain an estimate of the computation time of an expression by evaluating it a large number of time.
 
 ---
-# Measuring computation time in `R` (2)
-
+# Measuring computation time in `R` 
 For example let us consider benchmarking a simple `R` functions:
 
 
@@ -157,7 +173,7 @@ microbenchmark::microbenchmark(f1)
 ```
 ## Unit: nanoseconds
 ##  expr min lq  mean median uq  max neval
-##    f1  33 35 49.06     35 36 1309   100
+##    f1  33 36 62.32     36 37 2521   100
 ```
 
 These results summarize how long each query took: the minimum (`min`), lower and upper quartiles (`lq` and `uq`, respectively) and the mean, median and maximum, for each of the number of evaluations (`neval`, with the default value of 100 used in this case). `cld` reports the relative rank of each row in the form of 'compact letter display'.
@@ -169,7 +185,7 @@ These results summarize how long each query took: the minimum (`min`), lower and
 ---
 # Optimizing `R` code
 
-Before implementing a given code chunk that constitutes a bottleneck in `C++`, one should try to write the `R` code as efficiently as possible. There exists multiple way to improve the performance of an `R` code. General advice are for example to declare type and length of data structure explicitly rather then appending to existing data structure and to use efficiently implemented `R` functions when possible.
+Before implementing a given code chunk that constitutes a bottleneck in `C++`, one should try to write the `R` code as efficiently as possible. There exists multiple way to improve the performance of an `R` code. General advice are for example to declare type and length of data structure explicitly rather then to append to existing data structure as well as to use efficiently implemented `R` functions when possible. For a comprehensive discussion on the topic, we recommend [Efficient R programming](https://csgillespie.github.io/efficientR/).
 
 `R` is know to be particularly inefficient with iterative loop such as `for` and `while` loop. When computing operations on specific data structures, the `apply()` family of functions proposes a higher level interface to manipulate and execute operations on slices of data structure in a repetitive way rather than by explicit `for` loops. Note however, that `apply()`-type functions are not necessarily faster than `for` loop, but they provide an easy interface such operations and increase code readability.
 
@@ -295,8 +311,9 @@ RETURN_TYPE FUNCTION_NAME(ARGUMENT_TYPE ARGUMENT){
 }
 ```
 
-`#include&lt;Rcpp.h&gt; ` enables you to use classes and functions defined by the `Rcpp` package.
-`using namespace Rcpp;` specify the namespace. One could omit this argument in the header and prefix all functions and objects defined by `Rcpp` with `Rcpp::`.
+- `#include&lt;Rcpp.h&gt; ` enables you to use classes and functions defined by the `Rcpp` package.
+
+- `using namespace Rcpp;` specify the namespace. One could omit this argument in the header and prefix all functions and objects defined by `Rcpp` with `Rcpp::`.
 
 
 
@@ -307,24 +324,16 @@ RETURN_TYPE FUNCTION_NAME(ARGUMENT_TYPE ARGUMENT){
 
 `Rcpp` provides a high-level syntax for declaring `C++` functions easily. Here are some example comparing `R` and `Rcpp` syntax for basic operations.
 
-.pull-left[
-### `R` code
 
-.scroll-box-14[
 
-```r
-# declaring a vector
-```
-]]
-.pull-right[
-### `C++` code
+| Operation| R |Rcpp|
+|:---:|:---:|:---:|
+| Vector constructor | `vector(mode = "numeric", length = 5)` | `NumericVector xx(5);` |
+| Matrix constructor |`X = matrix(0,10,10)` |`NumericMatrix xx(5, 5);`|
 
-.scroll-box-14[
 
-```cpp
 
-```
-]]
+&lt;!-- | Indexing vector | `vector(mode = "numeric", length = 5)` | `NumericVector xx(5);` | --&gt;
 
 ---
 
@@ -342,7 +351,7 @@ RETURN_TYPE FUNCTION_NAME(ARGUMENT_TYPE ARGUMENT){
 ---
 # `Rcpp sugar`
 
-The `Rcpp` library provide a variety of already implemented functions that mimics `R` functions.
+The `Rcpp` library provide a variety of `R`-like functions. This set of functions is defined as `Rcpp sugar`. It provides vectorized procedures, functions for strings, statistical functions and other useful `R`-like functions.
 
 
 
@@ -463,20 +472,21 @@ One can source a `.cpp` file that make use of `Armadillo` by specifying the foll
 
 `[[Rcpp::depends(RcppArmadillo)]]` ensures that `sourceCpp()` can compile and load the `RcppArmadillo` headers.
 
+---
+# How `RcppArmadillo` works
 
 ---
 # Armadillo basic synthax
 
 | Operation| R |Armadillo|
 |:---:|:---:|:---:|
+| Matrix constructor |`X = matrix(1,10,10)` |`X = ones(10,10)`|
+|Matrix indexing | `X[1,1] `| `X(1,1)`| 
+|Matrix dimensions | `nrow(X)` and `ncol(X)`| `X.n_rows` and `X.n_cols` | 
+|Matrix joins operations | `X = cbind(A, B)` and `X = rbind(A, B)`| `X = join_horiz(A,B)` and `X = join_vert(A,B)` |
 
-|Matrix constructor |  `X = matrix(1,10,10)` | `X = ones(10,10)`  |
-|Matrix indexing | `X[1,1] `| `X(1,1)`|
-|Matrix dimensions | `nrow(X)` and `ncol(X)`| `X.n_rows` and `X.n_cols` |
-|Matrix joins operations | `X = cbind(A, B)` and `X = rbind(A, B)`| `X = join_horiz(A,B) 	` and ` 	X = join_vert(A,B) 	` |
 
----
-# How `RcppArmadillo` works
+
 
 
 
@@ -603,10 +613,12 @@ arma::colvec wvar_cpp(arma::vec Xt) {
 ]]
 
 
+
 ---
 # Use case: The Haar Wavelet Variance 
-## Performance gain
+### Performance gain
 
+&lt;img src="slides_r_lunch_rcpp_files/figure-html/unnamed-chunk-25-1.png" style="display: block; margin: auto;" /&gt;
 
 
 
@@ -620,9 +632,9 @@ arma::colvec wvar_cpp(arma::vec Xt) {
 
 # To go further (Ressources)
 
-- [Advanced R](https://adv-r.hadley.nz/)
-
 - [Rcpp for everyone](https://teuder.github.io/rcpp4everyone_en/)
+
+- [Advanced R](https://adv-r.hadley.nz/)
 
 - [Seamless R and C++ Integration with Rcpp](https://www.springer.com/gp/book/9781461468677)
 
@@ -633,8 +645,8 @@ arma::colvec wvar_cpp(arma::vec Xt) {
 class: sydney-blue, center, middle
 
 
-# Thanks!
-## Any questions?
+# Thank you !
+### Any questions?
 
 .pull-down[
 &lt;a href="mailto:garth.tarr@sydney.edu.au"&gt;
