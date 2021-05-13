@@ -39,7 +39,11 @@ class: center, middle, inverse, title-slide
 
 https://spcanelon.github.io/xaringan-basics-and-beyond/
 
-also, check about infinite moon reader for development
+and
+
+https://github.com/garthtarr/sydney_xaringan
+
+also, check about [infinite moon reader](https://yihui.org/en/2019/02/ultimate-inf-mr/) for development
 
 ---
 
@@ -51,12 +55,14 @@ also, check about infinite moon reader for development
 
 - Understand how to compile `Rcpp` code and use it in `R`.
 
-- Understand how to use `C++` libraries for scientific computing (`Armadillo`)
+- Get an understanding of the `Rcpp` basic syntax.
+
+- Understand how to use `C++` linear algebra libraries for scientific computing (`Armadillo`)
 
 
 &amp;nbsp;
 
-&lt;img src="assets/thelogo.png" width="350" height="150" style="display: block; margin: auto;" /&gt;
+&lt;img src="assets/thelogo.png" width="350" height="160" style="display: block; margin: auto;" /&gt;
 
 ---
 
@@ -87,7 +93,7 @@ install.packages("Rcpp")
 
 Note that you will also need to install `Rtools` to compile `C++` code. To do so, follow the instructions [here](https://cran.r-project.org/bin/macosx/tools/) if you have a Mac or [here](https://cran.r-project.org/bin/windows/Rtools/) for a Windows system. 
 
-If you are on Linux, you can either use
+If you are on Linux, depending on your distro, you can use:
 
 ```bash
 # RHEL/CentOS
@@ -112,7 +118,7 @@ You can profile `R` code with the use of the packages `Rprof` and `profvis` avai
 install.packages("profvis")
 ```
 
-The synthax for code profiling is then
+The synthax to perform a code profiling analysis is then
 
 ```r
 profvis({
@@ -148,8 +154,8 @@ microbenchmark::microbenchmark(f1)
 
 ```
 ## Unit: nanoseconds
-##  expr min lq  mean median uq  max neval
-##    f1  38 39 55.52     40 41 1498   100
+##  expr min lq   mean median uq  max neval
+##    f1  34 36 118.89     36 37 8091   100
 ```
 
 These results summarize how long each query took: the minimum (`min`), lower and upper quartiles (`lq` and `uq`, respectively) and the mean, median and maximum, for each of the number of evaluations (`neval`, with the default value of 100 used in this case). `cld` reports the relative rank of each row in the form of 'compact letter display'.
@@ -161,11 +167,11 @@ These results summarize how long each query took: the minimum (`min`), lower and
 ---
 # Optimizing `R` code
 
-Before implementing a given code chunk that constitutes a bottleneck, one should try to write the `R` code as efficiently as possible. There exists multiple way to improve the performance of an `R` code. General advice are for example to declare type and length of data structure explicitly rather then appending to existing data structure and to use efficiently implemented `R` functions when possible.
+Before implementing a given code chunk that constitutes a bottleneck in `C++`, one should try to write the `R` code as efficiently as possible. There exists multiple way to improve the performance of an `R` code. General advice are for example to declare type and length of data structure explicitly rather then appending to existing data structure and to use efficiently implemented `R` functions when possible.
 
-`R` is know to be particularly inefficient with iterative loop such as `for` and `while` loop. When computing operations on specific data structures, it is recommended to use the `apply()` family of functions rather than `for` loops. This family of function allow to manipulate slices of data structure in a repetitive way rather than by explicit for loops. Note however, that `apply()`-type functions are not necessarily always faster than `for` loop, but they provide an easy interface for repetive computations on specific data structures and increase code readability.
+`R` is know to be particularly inefficient with iterative loop such as `for` and `while` loop. When computing operations on specific data structures, the `apply()` family of functions proposes a higher level interface to manipulate and execute operations on slices of data structure in a repetitive way rather than by explicit `for` loops. Note however, that `apply()`-type functions are not necessarily faster than `for` loop, but they provide an easy interface for repetitive computations on specific data structures and increase code readability.
 
-
+Find a tutorial on the `apply()` family of functions [here](https://www.datacamp.com/community/tutorials/r-tutorial-apply-family).
 
 
 ---
@@ -179,7 +185,7 @@ Let us consider a simple example where we want to construct a vector of length `
 
 .pull-left[
 
-.scroll-box-8[
+.scroll-box-5[
 
 ```r
 method1 = function(n) {
@@ -192,7 +198,7 @@ method1 = function(n) {
 ]]
 .pull-right[
 
-.scroll-box-8[
+.scroll-box-5[
 
 ```r
 method2 = function(n) {
@@ -213,14 +219,10 @@ microbenchmark(times = 100, unit = "s",  method1(n), method2(n), method3(n))
 
 ```
 ## Unit: seconds
-##        expr         min          lq          mean       median
-##  method1(n) 0.000205295 0.000220190 0.00027288489 0.0002367030
-##  method2(n) 0.000017326 0.000018436 0.00005134686 0.0000194285
-##  method3(n) 0.000000387 0.000000532 0.00001137492 0.0000007990
-##           uq         max neval cld
-##  0.000260380 0.003118300   100   b
-##  0.000021502 0.003109051   100  a 
-##  0.000000956 0.001048976   100  a
+##        expr         min           lq          mean       median           uq         max neval cld
+##  method1(n) 0.000250111 0.0002751120 0.00034455718 0.0002916830 0.0003261345 0.003497212   100   b
+##  method2(n) 0.000020778 0.0000223745 0.00006035029 0.0000229870 0.0000255515 0.003458409   100  a 
+##  method3(n) 0.000000471 0.0000005790 0.00001336807 0.0000010155 0.0000016830 0.001153712   100  a
 ```
 
 
@@ -247,6 +249,11 @@ Rcpp is a package that enables you to implement R functions in C++. It is easy t
 # Embedding `Rcpp` code in `R`
 `sourceCpp()` let you source and compile a `.cpp` file inside of an `R` environment.
 
+```r
+sourceCpp("cpp_file.cpp")
+```
+
+
 `cppFunction` let you write an `Rcpp` function directly inside of an `R` environment, for example:
 
 ```cpp
@@ -268,7 +275,29 @@ evalCpp('std::numeric_limits&lt;double&gt;::max()')
 For this workshop, we will mostly consider using `sourceCpp()` and writing `C++` code in an specific `.cpp` file as this provide various advantages that we will cover.
 
 ---
+# Header of a `.cpp` file 
+
+```cpp
+*#include&lt;Rcpp.h&gt;
+*using namespace Rcpp;
+
+// [[Rcpp::export]]
+RETURN_TYPE FUNCTION_NAME(ARGUMENT_TYPE ARGUMENT){
+
+    //do something
+
+    return RETURN_VALUE;
+}
+```
+
+`#include&lt;Rcpp.h&gt; ` enables you to use classes and functions defined by the `Rcpp` package.
+`using namespace Rcpp;` specify the namespace. One could omit this argument in the header and prefix all functions and objects defined by `Rcpp` with `Rcpp::`.
+
+
+---
 # `C++` and `Rcpp` synthax (simple examples)
+
+`Rcpp` provides a high-level synthax for declaring `C++` functions easily. Here are some example comparing `R` and `Rcpp` synthax.
 
 .pull-left[
 ### `R` code
@@ -286,6 +315,7 @@ For this workshop, we will mostly consider using `sourceCpp()` and writing `C++`
 ```
 ]]
 
+---
 
 ---
 # `Rcpp sugar`
@@ -293,38 +323,34 @@ For this workshop, we will mostly consider using `sourceCpp()` and writing `C++`
 The `Rcpp` library provide a variety of `R`-style 
 
 
----
-
-# Including `Rcpp` code in `R`
-
-There exists two possibilities for sourcing `C++` code in `R`. One can directly source a `C++` function inside of an `R` code with "inline sourcing" with the function: 
-- inline
-
-- sourcing
 
 
 
 ---
-.pull-right[![](assets/armadillo_logo2.png)]
-# Including support for `Armadillo` 
+
+# Including support for `Armadillo`  .pull-right-narrow[![](assets/armadillo_logo2.png)]
 
 
-In addition to the functions provided by `Rcpp` and the `C++` standard library `std::`, one can also make use of high quality `C++` linear algebra libraries such as `Armadillo` and `Eigen` with respectively `R` package `RcppArmadillo` and `RcppEigen`. We present here how to use the `Armadillo` library.
+In addition to the functions provided by `Rcpp` and the `C++` standard library `std::`, one can also make use of high quality `C++` linear algebra libraries such as `Armadillo` and `Eigen` with respectively `R` package `RcppArmadillo` and `RcppEigen`. We present here how to use the `Armadillo` library. Once `RcppArmadillo` has been installed with 
 
-Once `RcppArmadillo` has been installed with 
+
 
 ```r
 install.packages("RcppArmadillo")
 ```
 
-One can source a `.cpp` file that make use of `Armadillo`.
+One can source a `.cpp` file that make use of `Armadillo` by specifying the following arguments in the header of the `.cpp` file:
 
 
+```cpp
+*#include &lt;RcppArmadillo.h&gt;
+*// [[Rcpp::depends(RcppArmadillo)]]
+*using namespace Rcpp;
+```
 
 
-- why using it
+`[[Rcpp::depends(RcppArmadillo)]]` ensures that `sourceCpp()` can compile and load the `RcppArmadillo` headers.
 
-- basic example
 
 ---
 # How `RcppArmadillo` works
@@ -339,7 +365,7 @@ We here consider a real case application of transferring `R` code in `C++` code.
 
 For this example, we will conside the Haar Wavelet Variance.
 
-This statistical quantiy is used in the context of inference foor multivariate times series.
+This statistical quantity is used in the context of inference for latent 
 
 - What is the haar wavelet variance
 
@@ -515,7 +541,7 @@ class: sydney-blue, center, middle
 
 
 &lt;a href="https://github.com/SMAC-Group/r_lunch_rcpp"&gt;
-.white[&lt;svg viewBox="0 0 512 512" style="height:1em;position:relative;display:inline-block;top:.1em;" xmlns="http://www.w3.org/2000/svg"&gt;  &lt;path d="M326.612 185.391c59.747 59.809 58.927 155.698.36 214.59-.11.12-.24.25-.36.37l-67.2 67.2c-59.27 59.27-155.699 59.262-214.96 0-59.27-59.26-59.27-155.7 0-214.96l37.106-37.106c9.84-9.84 26.786-3.3 27.294 10.606.648 17.722 3.826 35.527 9.69 52.721 1.986 5.822.567 12.262-3.783 16.612l-13.087 13.087c-28.026 28.026-28.905 73.66-1.155 101.96 28.024 28.579 74.086 28.749 102.325.51l67.2-67.19c28.191-28.191 28.073-73.757 0-101.83-3.701-3.694-7.429-6.564-10.341-8.569a16.037 16.037 0 0 1-6.947-12.606c-.396-10.567 3.348-21.456 11.698-29.806l21.054-21.055c5.521-5.521 14.182-6.199 20.584-1.731a152.482 152.482 0 0 1 20.522 17.197zM467.547 44.449c-59.261-59.262-155.69-59.27-214.96 0l-67.2 67.2c-.12.12-.25.25-.36.37-58.566 58.892-59.387 154.781.36 214.59a152.454 152.454 0 0 0 20.521 17.196c6.402 4.468 15.064 3.789 20.584-1.731l21.054-21.055c8.35-8.35 12.094-19.239 11.698-29.806a16.037 16.037 0 0 0-6.947-12.606c-2.912-2.005-6.64-4.875-10.341-8.569-28.073-28.073-28.191-73.639 0-101.83l67.2-67.19c28.239-28.239 74.3-28.069 102.325.51 27.75 28.3 26.872 73.934-1.155 101.96l-13.087 13.087c-4.35 4.35-5.769 10.79-3.783 16.612 5.864 17.194 9.042 34.999 9.69 52.721.509 13.906 17.454 20.446 27.294 10.606l37.106-37.106c59.271-59.259 59.271-155.699.001-214.959z"&gt;&lt;/path&gt;&lt;/svg&gt; SMAC-Group/r_lunch_rcpp]
+.white[&lt;svg viewBox="0 0 576 512" style="height:1em;position:relative;display:inline-block;top:.1em;" xmlns="http://www.w3.org/2000/svg"&gt;  &lt;path d="M480 416v16c0 26.51-21.49 48-48 48H48c-26.51 0-48-21.49-48-48V176c0-26.51 21.49-48 48-48h16v48H54a6 6 0 0 0-6 6v244a6 6 0 0 0 6 6h372a6 6 0 0 0 6-6v-10h48zm42-336H150a6 6 0 0 0-6 6v244a6 6 0 0 0 6 6h372a6 6 0 0 0 6-6V86a6 6 0 0 0-6-6zm6-48c26.51 0 48 21.49 48 48v256c0 26.51-21.49 48-48 48H144c-26.51 0-48-21.49-48-48V80c0-26.51 21.49-48 48-48h384zM264 144c0 22.091-17.909 40-40 40s-40-17.909-40-40 17.909-40 40-40 40 17.909 40 40zm-72 96l39.515-39.515c4.686-4.686 12.284-4.686 16.971 0L288 240l103.515-103.515c4.686-4.686 12.284-4.686 16.971 0L480 208v80H192v-48z"&gt;&lt;/path&gt;&lt;/svg&gt; SMAC-Group/r_lunch_rcpp]
 &lt;/a&gt;
 
 ]
