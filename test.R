@@ -60,6 +60,18 @@ microbenchmark(f1_for_loop(big_mat),
 
 
 
+library(DescTools)
+library(PropCIs)
+n = 150
+prob_p <- 0.01 # true proportion
+nbsim <- 1000 # nbr of simulations
+cover <- vector(mode = "numeric", length = nbsim) 
+set.seed(123)
+for (i in 1:nbsim) {
+    X <- rbinom(n, 1, prob_p) # generate random variable from bernouilli
+    ci<- BinomCI(sum(X), n, method = c("wald"))[2:3] # save CI based on wald
+    cover[i] <- ifelse(ci[1] <= prob_p & ci[2] >= prob_p, 1, 0) # save coverage
+}
 
 
 

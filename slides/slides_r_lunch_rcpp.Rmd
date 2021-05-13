@@ -21,11 +21,8 @@ output:
 ---
 
 
-@Sam for an introduction to xaringan, check later slides or see
+@Sam for an introduction to xaringan, see
 
-
-title: "Extending R with C++"
-subtitle: "A brief introduction to Rcpp and Armadillo"
 https://spcanelon.github.io/xaringan-basics-and-beyond/
 
 also, check about infinite moon reader for development
@@ -59,26 +56,58 @@ knitr::include_graphics("assets/thelogo.png")
 
 ---
 
-# Motivations: Why using `C++` in `R`
+# Why using `C++` in `R`: Motivation
 
 When working with complex computations in `R`, it is often the case that `R` is simply not fast enough. In such cases, it is interesting to identify where are the bottleneck in a given code and to rewrite chunks of code that compose most of the computing time required by an expression in a flower-level language.
-
-`Rcpp` makes it very easy to connect `C++` code to `R`.  
-
-
-
----
-# Differences between `R` and `C++`
-
 
 `C++` is a general-purpose programming language developed initially as an extension of the `C` language that included classes. As opposed to `R`, `C++` is a compiled language. `C++` is considered as a benchmark for speed as it is faster than most lower level language such as `Fortran` or `C`.
 
 
 
 ---
+# Using `C++` in `R` 
+
+`Rcpp` is an `R` package that makes it very easy to connect `C++` code to `R`. Written by Dirk Eddelbuettel and Romain Francois, `Rcpp` let you compile and use `C++` functions directly in `R`.
+
+You can install `Rcpp` with
+```{r, eval =F}
+install.packages("Rcpp")
+```
+
+Note that you will also need to install `Rtools` to compile `C++` code. To do so, follow the instructions [here](https://cran.r-project.org/bin/macosx/tools/) if you have a Mac or [here](https://cran.r-project.org/bin/windows/Rtools/) for a Windows system. 
+
+If you are on Linux, you can either use
+```{bash, eval =F}
+# RHEL/CentOS
+sudo yum update
+sudo yum install R
+# Ubuntu
+sudo apt-get update
+sudo apt-get install r-base r-base-dev
+```
+
+
+
+
+---
 # Profiling `R` code 
 
-When working on the efficiency of an `R` code it is important to identify where the co
+When working on the efficiency of an `R` code it is important to identify which part of the code are the most time consuming. Indeed, rewriting `R` code in `C++` is a time-consuming step and rewriting a chunk of code that only represent a small fraction of the total computing time is not efficient.
+
+You can profile `R` code with the use of the packages `Rprof` and `profvis` available with 
+```{r, eval = F}
+install.packages("profvis")
+```
+
+The synthax for code profiling is then
+```{r, eval =F}
+profvis({
+  R sequence of execution to profile
+})
+```
+
+Find examples and instructions [here](https://rstudio.github.io/profvis/).
+
 
 ---
 # Measuring computation time in `R`
@@ -90,6 +119,19 @@ install.packages("microbenchmark")
 
 Using the function `microbenchmark` of this package, one can obtain an estimate of the computation time of an expression by evaluating it a large number of time.
 
+---
+# Measuring computation time in `R` (2)
+
+For example let us consider benchmarking a simple `R` functions:
+
+```{r}
+library(microbenchmark)
+f1 = function(x){sum(exp(x))}
+microbenchmark::microbenchmark(f1)
+```
+
+These results summarize how long each query took: the minimum (`min`), lower and upper quartiles (`lq` and `uq`, respectively) and the mean, median and maximum, for each of the number of evaluations (`neval`, with the default value of 100 used in this case). `cld` reports the relative rank of each row in the form of 'compact letter display'.
+
 
 
 
@@ -97,39 +139,40 @@ Using the function `microbenchmark` of this package, one can obtain an estimate 
 ---
 # Optimizing `R` code
 
-Before implementing a given code chunk that constitutes a bottleneck, one should try to write the `R` code as efficiently as possible. There exists multiple way to improve the performance of an `R` code. General advice are for example to declare type and length of data structure explicitly rather then appending to existing data structure.
+Before implementing a given code chunk that constitutes a bottleneck, one should try to write the `R` code as efficiently as possible. There exists multiple way to improve the performance of an `R` code. General advice are for example to declare type and length of data structure explicitly rather then appending to existing data structure and to use efficiently implemented `R` functions when possible.
 
-Also, `R` is know to be particularly inefficient with iterative loop such as `for` and `while` loop. When computing operations on specific data structures, it is recommended to use the `apply()` family of functions rather than `for` loops. This family of function allow to manipulate slices of data structure in a repetitive way rather than by explicit for loops.
+`R` is know to be particularly inefficient with iterative loop such as `for` and `while` loop. When computing operations on specific data structures, it is recommended to use the `apply()` family of functions rather than `for` loops. This family of function allow to manipulate slices of data structure in a repetitive way rather than by explicit for loops. Note however, that `apply()`-type functions are not necessarily always faster than `for` loop, but they provide an easy interface for repetive computations on specific data structures and increase code readability.
 
-Let us consider a simple example where we consider applying the function $$f: \mathbb{R}^p \rightarrow \mathbb{R} = n^{-1}\sum_{i=1}^n X_i$$ to each element of a list.
+
 
 
 ---
-# Optimizing `R` code (2)
+# Optimizing `R` code: Illustration
+Let us consider a simple example where we want to construct a vector of length $n$.
+<!-- Let us consider a simple example where we consider applying the function $$f: \mathbb{R}^p \rightarrow \mathbb{R} = n^{-1}\sum_{i=1}^n X_i$$ to each element of a list. -->
+
+```{r, echo = F}
+options(scipen =999)
+```
 
 
 ```{r}
-
-
+method1 = function(n) {
+  vec = NULL # Or vec = c()
+  for (i in seq_len(n))
+    vec = c(vec, i)
+  vec
+}
+method2 = function(n) {
+  vec = numeric(n)
+  for (i in seq_len(n))
+    vec[i] = i
+  vec
+}
+method3 = function(n) seq_len(n)
+microbenchmark(times = 100, unit = "s",  method1(n), method2(n), method3(n))
 ```
 
-
-
-
-
-
-
-
----
-# Measuring computation time in `R` (2)
-
-One can then proceed to a benchmarking of this function with:
-```{r, cache = T}
-microbenchmark::microbenchmark(fibo_r(20))
-```
-
-
-These results summarize how long each query took: the minimum (`min`), lower and upper quartiles (`lq` and `uq`, respectively) and the mean, median and maximum, for each of the number of evaluations (`neval`, with the default value of 100 used in this case). `cld` reports the relative rank of each row in the form of 'compact letter display'.
 
 
 
