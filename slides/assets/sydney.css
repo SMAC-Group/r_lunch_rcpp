@@ -7,6 +7,14 @@
   padding-right: 50px;
   padding-bottom: 25px;
 }
+
+
+
+
+/* define colour*/
+--my-darkorange:       #e38c02;
+
+
 /* 
 To specify the margin of the first title h1
 */
@@ -354,13 +362,43 @@ slides > slide {
 /*
 }
 */
- 
+
+.title-slide h3:nth-of-type(1) {
+    color: white;
+}
+.title-slide h3:nth-of-type(2) {
+    color: white;
+}
+.title-slide h1:nth-of-type(1) {
+    color: white;
+}
+.title-slide h2:nth-of-type(1) {
+    color: my-darkorange;
+}
+
+.pull-right-narrow {
+  float: right;
+  width: 20%;
+}
+
+.pull-right-wide {
+  float: right;
+  width: 75%;
+}
+
+.pull-left-narrow {
+  float: left;
+  width: 20%;
+}
+
+
+
 .title-slide {
-  background-image: url(unigelogo-black.svg);
+    /* background-image: url(unige_2.svg);*/
   /* background-image: url(https://sydney.edu.au/etc/designs/corporate-commons/bower_components/corporate-frontend/dist/assets/img/USydLogo.svg); */
   background-position: 10% 90%;
-  background-size: 160px;
-  background-color: #e64626;
+  background-size: 190px;
+  background-color: #0148A4;
   text-align:left;
   vertical-align: top;
   text-shadow: none;
@@ -370,7 +408,7 @@ slides > slide {
 
 /* H1 fonts  */
 .title-slide h1 {
-  color: #ffffff;
+  color: black;
   font-weight: normal;
   font-size: 45px;
   padding: 20px;
@@ -381,7 +419,7 @@ slides > slide {
 
 /* H2 fonts */
 .title-slide h2 {
-  color: black !important; /* first of type is master brand red */
+  color: black; /*!important; /* first of type is master brand red */
   font-size: 35px;
   padding-left: 20px;
   padding-bottom: 10px;
@@ -389,6 +427,7 @@ slides > slide {
   text-align: left;
   vertical-align: middle;
 }
+
 
 /* H3 fonts */
 .title-slide h3 {
@@ -419,8 +458,8 @@ blockquote, .blockquote {
   border-bottom: solid 2px #0148A4;
   border-right: solid 2px #0148A4;
   box-shadow: 0 0 6px rgba(0,0,0,0.5);
-  /* background-color: #e64626; */
-  color: #e64626;
+  /* background-color: #e64626; 
+  /*color: #e64626;*/
   padding: 0.5em;
   -moz-border-radius: 5px;
   -webkit-border-radius: 5px;
