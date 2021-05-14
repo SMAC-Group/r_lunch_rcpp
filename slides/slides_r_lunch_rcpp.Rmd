@@ -180,16 +180,20 @@ These results summarize how long each query took: the minimum (`min`), lower and
 ---
 # Optimizing `R` code
 
-Before implementing a given code chunk that constitutes a bottleneck in `C++`, one should try to write the `R` code as efficiently as possible. There exists multiple way to improve the performance of an `R` code. General advice are for example to declare type and length of data structure explicitly rather then to append to existing data structure as well as to use efficiently implemented `R` functions when possible. For a comprehensive discussion on the topic, we recommend [Efficient R programming](https://csgillespie.github.io/efficientR/).
+Before implementing a given code chunk that constitutes a bottleneck in `C++`, one should try to write the `R` code as efficiently as possible. There exists multiple way to improve the performance of an `R` code. 
 
-`R` is know to be particularly inefficient with iterative loop such as `for` and `while` loop. When computing operations on specific data structures, the `apply()` family of functions proposes a higher level interface to manipulate and execute operations on slices of data structure in a repetitive way rather than by explicit `for` loops. Note however, that `apply()`-type functions are not necessarily faster than `for` loop, but they provide an easy interface such operations and increase code readability.
+General advice are for example to declare type and length of data structure explicitly rather then to append to existing data structure as well as to use efficiently implemented `R` functions when possible. 
 
-Find a comprehensive tutorial on the `apply()` family of functions [here](https://www.datacamp.com/community/tutorials/r-tutorial-apply-family).
+Hence, there exists different way to script a function in `R`, and depending on the functions and objects defined, different implementation will have different computation time.
+
+For a comprehensive discussion on the topic, we recommend [Efficient R programming](https://csgillespie.github.io/efficientR/).
+
+
 
 
 ---
 # Optimizing `R` code: Illustration
-Let us consider a simple example where we want to construct a vector of length $n$.
+TO illustrate this notion, l^et us consider a simple example where we want to construct a vector of length $n$.
 <!-- Let us consider a simple example where we consider applying the function $$f: \mathbb{R}^p \rightarrow \mathbb{R} = n^{-1}\sum_{i=1}^n X_i$$ to each element of a list. -->
 
 ```{r, echo = F}
@@ -237,6 +241,11 @@ Unit: seconds
  method3(n) 0.000000394 0.0000005595 0.00000137795 0.0000009735 0.0000014435 0.000016710   100  a 
 ```
 
+<!-- --- -->
+
+<!-- `R` is know to be particularly inefficient with iterative loop such as `for` and `while` loop. When computing operations on specific data structures, the `apply()` family of functions proposes a higher level interface to manipulate and execute operations on slices of data structure in a repetitive way rather than by explicit `for` loops. Note however, that `apply()`-type functions are not necessarily faster than `for` loop, but they provide an easy interface such operations and increase code readability. -->
+
+<!-- Find a comprehensive tutorial on the `apply()` family of functions [here](https://www.datacamp.com/community/tutorials/r-tutorial-apply-family). -->
 
 
 
@@ -288,6 +297,67 @@ evalCpp('std::numeric_limits<double>::max()')
 For this workshop, we will mostly consider using `sourceCpp()` and writing `C++` code in an specific `.cpp` file as this provide various advantages that we will cover.
 
 ---
+# data types and automatic data conversion in `R`
+
+`R` implement an automatic data conversion when performing operations on different data types.
+
+Hence, you can combine objects of different data types without errors. 
+
+```{r}
+typeof(c(1L,0.25))
+typeof(c(1L,"a"))
+```
+
+Depending on the function called, automatic data conversion will not be able to transform data correctly.
+
+
+```{r, eval =F}
+sum(c(1.5,"a",3L))
+```
+
+```{r, eval =F}
+Error in sum(c(1.5, "a", 3L)) : invalid 'type' (character) of argument
+```
+
+
+---
+# Data types and methods in `C++`
+
+In `C++`, all objects need to be defined with an explicit data types.
+
+Hence, considering a `Rcpp` equivalent of `rep(0,n)` in `R`, we observe that we need to explicitly define the output data type as well as the data type of each objects declared in the function.
+```{Rcpp, eval =F}
+NumericVector create_empty_vector(int n) {#<<
+  NumericVector v (n);#<<
+  return v;
+}
+```
+
+Furthermore, data types are associated with specific methods (also called member functions) that can be called on object. You can call member functions `f()` of object `v` in the form of `v.f()`. For example, a `NumericVector` as the method `length()`.
+```{Rcpp, eval =F}
+int get_length_vec(NumericVector x) {
+  int length_vec = x.length(); #<<
+  return length_vec;
+}
+```
+
+
+
+---
+
+# Correspondance of data type between `R`, `Rcpp` and `C++`
+
+|Value | R vector|Rcpp vector|Rcpp matrix|Rcpp scalar|C++ scalar|
+|:---:|:---:|:---:|:---:|:---:|:---:|
+|Logical|`logical`  |`LogicalVector`| `LogicalMatrix`| - |`bool`|
+|Integer|`integer`  |`IntegerVector`|`IntegerMatrix`|-|`int`|
+|Real|`numeric` |`NumericVector`|`NumericMatrix`|-|`double`|
+|Complex|`complex`  |`ComplexVector`| `ComplexMatrix`|`Rcomplex`|`complex`|
+|String|`character`|`CharacterVector` (`StringVector`)| `CharacterMatrix` (`StringMatrix`)|`String`|`string`|
+|Date  |`Date`     |`DateVector`|-|`Date`|-|
+|Datetime  |`POSIXct`  |`DatetimeVector`|-| `Datetime` | `time_t` |
+
+---
 # Header of a `.cpp` file 
 ```{Rcpp, eval =F}
 #include<Rcpp.h> #<<
@@ -306,7 +376,7 @@ RETURN_TYPE FUNCTION_NAME(ARGUMENT_TYPE ARGUMENT){
 
 - `using namespace Rcpp;` specify the namespace. One could omit this argument in the header and prefix all functions and objects defined by `Rcpp` with `Rcpp::`.
 
-
+- `// [[Rcpp::export]]` import the `Rcpp` function to you `R` global environment.
 
 
 
@@ -329,19 +399,7 @@ RETURN_TYPE FUNCTION_NAME(ARGUMENT_TYPE ARGUMENT){
 
 <!-- | Indexing vector | `vector(mode = "numeric", length = 5)` | `NumericVector xx(5);` | -->
 
----
 
-# Correspondance of data type between `R`, `Rcpp` and `C++`
-
-|Value | R vector|Rcpp vector|Rcpp matrix|Rcpp scalar|C++ scalar|
-|:---:|:---:|:---:|:---:|:---:|:---:|
-|Logical|`logical`  |`LogicalVector`| `LogicalMatrix`| - |`bool`|
-|Integer|`integer`  |`IntegerVector`|`IntegerMatrix`|-|`int`|
-|Real|`numeric` |`NumericVector`|`NumericMatrix`|-|`double`|
-|Complex|`complex`  |`ComplexVector`| `ComplexMatrix`|`Rcomplex`|`complex`|
-|String|`character`|`CharacterVector` (`StringVector`)| `CharacterMatrix` (`StringMatrix`)|`String`|`string`|
-|Date  |`Date`     |`DateVector`|-|`Date`|-|
-|Datetime  |`POSIXct`  |`DatetimeVector`|-| `Datetime` | `time_t` |
 ---
 # `Rcpp sugar`
 
@@ -440,6 +498,50 @@ int fibo_cpp(int n) {
 ```
 ]]
 
+
+---
+# A note on `for` loop
+
+`R` is know to be particularly inefficient with iterative loop such as `for` and `while` loop.
+When you have such iterative control structure in your code and want to increase performance, it is a good strategy to rewrite these code chunks in `Rcpp`.
+
+`for` loops in `C++` have a slightly different syntax than in `R`.
+
+.pull-left[
+```{r, eval =F}
+print_i_r = function(i){
+  for(j in 1:i){ #<<
+  print(j)
+  }
+}
+print_i_r(3)
+```
+
+```{r, eval =F}
+1
+2
+3
+```
+
+
+]
+
+.pull-right[
+```{Rcpp, eval =F}
+void print_i_cpp(int i) {
+  for(int j = 1; j<=i; j ++){ #<<
+    Rcout << j  << "\n";
+  }
+}
+print_i_cpp(3)
+```
+
+```{r, eval =F}
+1
+2
+3
+```
+]
 
 
 ---
