@@ -1,5 +1,5 @@
 ---
-title: "R lunchs: Extending R with C++"
+title: "R-lunch: Extending R with C++"
 subtitle: "An introduction to performance computing with Rcpp and Armadillo"
 author: "Lionel Voirol & Samuel Orso"
 date: "17 May 2021"
@@ -36,6 +36,11 @@ also, check about [infinite moon reader](https://yihui.org/en/2019/02/ultimate-i
 
 ---
 
+# Motivation
+
+
+
+---
 
 # Objectives
 ```{r, load_refs, echo=FALSE, cache=FALSE, warning = F, message=F}
@@ -51,13 +56,13 @@ library(Rcpp)
 library(RcppArmadillo)
 ```
 
-- Understand how to measure performance in `R` using profiling and timing tools.
+- Overview of how to measure performance in `R` using profiling and timing tools.
 
-- Understand how to compile `Rcpp` code and use it in `R`.
+- Overview of how to compile `Rcpp` code and use it in `R`.
 
-- Get an understanding of the `Rcpp` basic syntax.
+- Basics of the `Rcpp` syntax.
 
-- Understand how to use `C++` linear algebra libraries for scientific computing (`Armadillo`)
+- Extensions with the `C++` linear algebra libraries for scientific computing (`Armadillo`)
 
 
 &nbsp;

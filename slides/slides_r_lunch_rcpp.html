@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html lang="" xml:lang="">
   <head>
-    <title>R lunchs: Extending R with C++</title>
+    <title>R-lunch: Extending R with C++</title>
     <meta charset="utf-8" />
     <meta name="author" content="Lionel Voirol &amp; Samuel Orso" />
     <meta name="date" content="2021-05-17" />
-    <script src="slides_r_lunch_rcpp_files/header-attrs-2.8/header-attrs.js"></script>
+    <script src="slides_r_lunch_rcpp_files/header-attrs-2.7/header-attrs.js"></script>
     <link href="slides_r_lunch_rcpp_files/remark-css-0.0.1/default.css" rel="stylesheet" />
     <script type="text/x-mathjax-config">
       MathJax.Hub.Config({
@@ -26,7 +26,7 @@
     <textarea id="source">
 class: center, middle, inverse, title-slide
 
-# R lunchs: Extending R with C++
+# R-lunch: Extending R with C++
 ## An introduction to performance computing with Rcpp and Armadillo
 ### Lionel Voirol &amp; Samuel Orso
 ### 17 May 2021
@@ -50,17 +50,22 @@ also, check about [infinite moon reader](https://yihui.org/en/2019/02/ultimate-i
 
 ---
 
+# Motivation
+
+
+
+---
 
 # Objectives
 
 
-- Understand how to measure performance in `R` using profiling and timing tools.
+- Overview of how to measure performance in `R` using profiling and timing tools.
 
-- Understand how to compile `Rcpp` code and use it in `R`.
+- Overview of how to compile `Rcpp` code and use it in `R`.
 
-- Get an understanding of the `Rcpp` basic syntax.
+- Basics of the `Rcpp` syntax.
 
-- Understand how to use `C++` linear algebra libraries for scientific computing (`Armadillo`)
+- Extensions with the `C++` linear algebra libraries for scientific computing (`Armadillo`)
 
 
 &amp;nbsp;
@@ -173,8 +178,8 @@ microbenchmark::microbenchmark(f1)
 
 ```
 ## Unit: nanoseconds
-##  expr min lq  mean median uq  max neval
-##    f1  34 35 50.95     36 37 1460   100
+##  expr min lq   mean median   uq   max neval
+##    f1  28 30 528.56   33.5 60.5 43498   100
 ```
 
 These results summarize how long each query took: the minimum (`min`), lower and upper quartiles (`lq` and `uq`, respectively) and the mean, median and maximum, for each of the number of evaluations (`neval`, with the default value of 100 used in this case). `cld` reports the relative rank of each row in the form of 'compact letter display'.
