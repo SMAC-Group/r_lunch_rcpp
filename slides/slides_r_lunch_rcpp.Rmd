@@ -61,7 +61,7 @@ Suppose your problem is to find $\pi$ using [Leibniz formula for $\pi$](https://
 and the fact that $$\arctan(1) = \sum_{k=1}^\infty\frac{(-1)^k}{2k+1}$$
 
 An algorithm to solve this problem could be
-```{r, eval = FALSE, attr.source='.numberLines'}
+```{r, eval = FALSE}
 x = 1.0
 pi = 1.0
 choose n
@@ -625,9 +625,13 @@ using namespace Rcpp;  #<<
 We here consider a real case application of rewriting `R` code in `C++` code.
 For this example, we will consider a naive implementation of an estimator of the **Haar Wavelet Variance**.
 
-This statistical quantity is used in the context of inference of time series models. Indeed, let $F_{\boldsymbol{\theta}}, \boldsymbol{\theta} \in \Theta \subseteq \mathbb{R}^{p}$ be the true data generating process of a univariate time series $\left\{Y_{t} ; t \in \mathbb{Z}\right\}$, the 
+This statistical quantity is used in the context of inference of time series models. Indeed, let $F_{\boldsymbol{\theta}}, \boldsymbol{\theta} \in \Theta \subseteq \mathbb{R}^{p}$ be the true data generating process of a univariate time series $\left\{Y_{t} ; t \in \mathbb{Z}\right\}$, the Generalized Method of Wavelet Moment (GMWM) estimator,  $\boldsymbol{\hat{\theta}}$,  exploits the mapping between $\boldsymbol{\theta}$ and the Wavelet Variance $\boldsymbol{\nu}$ by minimizing the distance between the empirical and estimated Wavelet Variance. 
 
-The interesting property of this quantity is that it has a one to one mapping to the vector of parameter of interest $\boldsymbol{\theta_0}$.
+Hence, the GMWM estimator is defined as
+$$
+\hat{\boldsymbol{\theta}}=\underset{\boldsymbol{\theta} \in \boldsymbol{\Theta}}{\operatorname{argmin}}(\hat{\boldsymbol{\nu}}-\boldsymbol{\nu}(\boldsymbol{\theta}))^{T} \boldsymbol{\Omega}(\hat{\boldsymbol{\nu}}-\boldsymbol{\nu}(\boldsymbol{\theta}))
+$$
+
 
 A basic algorithm to compute an estimator of this quantity provide an interesting use case as it provide an example on how to mix the use of different `Rcpp` functions and `arma::` classes.
 
@@ -636,11 +640,23 @@ A basic algorithm to compute an estimator of this quantity provide an interestin
 
 # Case study: The Haar Wavelet Variance
 
-The algorithm
+
 <!-- ![](assets/wvar_graph.png) -->
 <div align = "center">
-<img src="assets/wvar_graph.png" width="70%"/>
+<img src="assets/wvar_graph.png" width="80%"/>
 </div>
+
+
+---
+
+# Case study: The Haar Wavelet Variance
+Algorithm
+
+Let $Y_t$ where t $\in$ $\{1,\ldots, T\}$ be a univariate time series.
+
+Define $J = log_2(T)-1$,  $j \in \{1, \ldots, J\}$ and $\tau_j = 2^j$
+
+$\hspace{.8cm}$ 
 
 
 
