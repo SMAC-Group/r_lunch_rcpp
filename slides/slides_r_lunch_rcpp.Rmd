@@ -587,18 +587,20 @@ using namespace Rcpp;  #<<
 
 
 ---
-# Use case: The Haar Wavelet Variance
+# Case study: The Haar Wavelet Variance 
 
 We here consider a real case application of rewriting `R` code in `C++` code.
 For this example, we will consider a naive implementation of an estimator of the **Haar Wavelet Variance**.
 
-This statistical quantity is used in the context of inference of latent stochastic models used in time series analysis. A basic algorithm to compute an estimator of this quantity provide an interesting use case as it provide an example on how to mix the use of different `Rcpp` functions and `arma::` classes.
+This statistical quantity is used in the context of inference of time series models. Indeed, let $F_{\boldsymbol{\theta}}, \boldsymbol{\theta} \in \Theta \subseteq \mathbb{R}^{p}$ be the true data generating process of a univariate time series $\left\{Y_{t} ; t \in \mathbb{Z}\right\}$, the 
 
 The interesting property of this quantity is that it has a one to one mapping to the vector of parameter of interest $\boldsymbol{\theta_0}$.
 
+A basic algorithm to compute an estimator of this quantity provide an interesting use case as it provide an example on how to mix the use of different `Rcpp` functions and `arma::` classes.
+
 
 ---
-# Use case: The Haar Wavelet Variance
+# Case study: The Haar Wavelet Variance 
 The algorithm
 <!-- ![](assets/wvar_graph.png) -->
 <div align = "center">
@@ -611,11 +613,10 @@ The algorithm
 
 
 ---
-# Use case: The Haar Wavelet Variance 
+# Case study: The Haar Wavelet Variance 
 
 .pull-left[
-### `R` code
-
+**`R` code**
 .scroll-box-14[
 ```{r, eval =F}
 wvar_r = function(Xt){
@@ -665,8 +666,7 @@ wvar_r = function(Xt){
 ```
 ]]
 .pull-right[
-### `C++` code
-
+**`C++` code**
 .scroll-box-14[
 ```{Rcpp, eval =F}
 arma::colvec wvar_cpp(arma::vec Xt) {

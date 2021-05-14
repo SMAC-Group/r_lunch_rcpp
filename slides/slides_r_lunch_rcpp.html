@@ -178,8 +178,8 @@ microbenchmark::microbenchmark(f1)
 
 ```
 ## Unit: nanoseconds
-##  expr min lq  mean median uq  max neval
-##    f1  38 41 56.59     42 44 1345   100
+##  expr min lq   mean median  uq  max neval
+##    f1  64 96 143.69    102 107 4034   100
 ```
 
 These results summarize how long each query took: the minimum (`min`), lower and upper quartiles (`lq` and `uq`, respectively) and the mean, median and maximum, for each of the number of evaluations (`neval`, with the default value of 100 used in this case). `cld` reports the relative rank of each row in the form of 'compact letter display'.
@@ -623,18 +623,20 @@ One can source a `.cpp` file that make use of `Armadillo` by specifying the foll
 
 
 ---
-# Use case: The Haar Wavelet Variance
+# Case study: The Haar Wavelet Variance 
 
 We here consider a real case application of rewriting `R` code in `C++` code.
 For this example, we will consider a naive implementation of an estimator of the **Haar Wavelet Variance**.
 
-This statistical quantity is used in the context of inference of latent stochastic models used in time series analysis. A basic algorithm to compute an estimator of this quantity provide an interesting use case as it provide an example on how to mix the use of different `Rcpp` functions and `arma::` classes.
+This statistical quantity is used in the context of inference of time series models. Indeed, let `\(F_{\boldsymbol{\theta}}, \boldsymbol{\theta} \in \Theta \subseteq \mathbb{R}^{p}\)` be the true data generating process of a univariate time series `\(\left\{Y_{t} ; t \in \mathbb{Z}\right\}\)`, the 
 
 The interesting property of this quantity is that it has a one to one mapping to the vector of parameter of interest `\(\boldsymbol{\theta_0}\)`.
 
+A basic algorithm to compute an estimator of this quantity provide an interesting use case as it provide an example on how to mix the use of different `Rcpp` functions and `arma::` classes.
+
 
 ---
-# Use case: The Haar Wavelet Variance
+# Case study: The Haar Wavelet Variance 
 The algorithm
 &lt;!-- ![](assets/wvar_graph.png) --&gt;
 &lt;div align = "center"&gt;
@@ -647,11 +649,10 @@ The algorithm
 
 
 ---
-# Use case: The Haar Wavelet Variance 
+# Case study: The Haar Wavelet Variance 
 
 .pull-left[
-### `R` code
-
+**`R` code**
 .scroll-box-14[
 
 ```r
@@ -702,8 +703,7 @@ wvar_r = function(Xt){
 ```
 ]]
 .pull-right[
-### `C++` code
-
+**`C++` code**
 .scroll-box-14[
 
 ```cpp
