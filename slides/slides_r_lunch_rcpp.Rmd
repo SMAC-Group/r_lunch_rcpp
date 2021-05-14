@@ -2,7 +2,7 @@
 title: "R-lunch: Extending R with C++"
 subtitle: "An introduction to performance computing with Rcpp and Armadillo"
 author: "Lionel Voirol & Samuel Orso"
-date: "17 May 2021"
+date: "24 May 2021"
 output:
   xaringan::moon_reader:
     css: ["default", "assets/sydney-fonts.css", "assets/sydney.css"]
@@ -37,6 +37,7 @@ also, check about [infinite moon reader](https://yihui.org/en/2019/02/ultimate-i
 ---
 
 # Motivation
+
 
 
 
@@ -89,7 +90,7 @@ In such cases, it is interesting to identify where are the bottleneck in a given
 # Why using `C++` in `R`: Motivations
 
 
-`C++` is a general-purpose programming language developed initially as an extension of the `C` language that included classes for object-oriented programming. As opposed to `R` or `python`, `C++` is a compiled language. `C++` benefit of fast execution time and is considered as a benchmark for speed as it is faster than most lower level language such as `Fortran` or `C`.
+`C++` is a general-purpose programming language developed initially as an extension of the `C` language that included classes for object-oriented programming. As opposed to `R` or `python`, `C++` is a compiled language. `C++` benefit of fast execution time and is considered as a benchmark for speed as it is comparatively as fast as most lower level language such as `Fortran` or `C`.
 
 **Examples of ideal situations where to use `Rcpp` are:**
 
@@ -598,7 +599,7 @@ The interesting property of this quantity is that it has a one to one mapping to
 
 
 ---
-# Use case: The Haar Wavelet Variance
+# Case study: The Haar Wavelet Variance
 The algorithm
 <!-- ![](assets/wvar_graph.png) -->
 <div align = "center">
@@ -611,7 +612,7 @@ The algorithm
 
 
 ---
-# Use case: The Haar Wavelet Variance 
+# Case study: The Haar Wavelet Variance 
 
 .pull-left[
 ### `R` code
