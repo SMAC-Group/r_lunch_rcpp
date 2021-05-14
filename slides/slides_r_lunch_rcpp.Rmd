@@ -57,20 +57,53 @@ knitr::include_graphics("assets/sad_programmer.jpg")
 # It is not a piece of
 <img src="assets/pi-pie.png" style="height:100px; width:150px; position:absolute; top:7%; left:34.5%;"/>
 
-Suppose your problem is to find $\pi$ using [Leibniz formula for $\pi$](https://en.wikipedia.org/wiki/Leibniz_formula_for_%CF%80). Leibniz's idea is to use the relation $\frac{\pi}{4}=\arctan(1)$
+Suppose your problem is to find $\pi$ using [Leibniz formula for $\pi$](https://en.wikipedia.org/wiki/Leibniz_formula_for_%CF%80). Leibniz's idea is to use the relation $$\frac{\pi}{4}=\arctan(1)$$
 and the fact that $$\arctan(1) = \sum_{k=1}^\infty\frac{(-1)^k}{2k+1}$$
 
 An algorithm to solve this problem could be
 ```{r, eval = FALSE}
+<<<<<<< HEAD
+choose n and set
+x <- 1.0
+pi <- 1.0
+=======
 x = 1.0
 pi = 1.0
 choose n
+>>>>>>> 8a0527d944a9ab48ac1648898583c4c4426b3564
 for k from 1 to n
   x <- -x
   pi <- pi + x / (2.0 * k + 1.0)
-  
-pi = 4.0 * pi
+return pi <- 4.0 * pi
 ```
+
+---
+
+# It is not a piece of
+<img src="assets/pi-pie.png" style="height:100px; width:150px; position:absolute; top:7%; left:34.5%;"/>
+
+For this particular task, we can compare the performances of several programming languages.
+
+```{r echo=FALSE, fig.align='center', out.width=750, out.height=450}
+knitr::include_graphics("assets/logos.png")
+```
+---
+# It is not a piece of
+<img src="assets/pi-pie.png" style="height:100px; width:150px; position:absolute; top:7%; left:34.5%;"/>
+
+```{r echo=FALSE, fig.align='center', out.width=750, out.height=450}
+knitr::include_graphics("assets/speed_comparison.png")
+```
+(Source: [github.com/niklas-heer/speed-comparison](https://github.com/niklas-heer/speed-comparison))
+
+---
+# It is not a piece of
+<img src="assets/pi-pie.png" style="height:100px; width:150px; position:absolute; top:7%; left:34.5%;"/>
+
+```{r echo=FALSE, fig.align='center', out.width=750, out.height=450}
+knitr::include_graphics("assets/speed_comparison_2.png")
+```
+(Source: [github.com/niklas-heer/speed-comparison](https://github.com/niklas-heer/speed-comparison))
 
 
 ---
