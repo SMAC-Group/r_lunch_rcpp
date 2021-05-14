@@ -1,6 +1,6 @@
 ---
 title: "R-lunch: Extending R with C++"
-subtitle: "An introduction to performance computing with Rcpp and Armadillo"
+subtitle: "An introduction to high performance computing with Rcpp and Armadillo"
 author: "Lionel Voirol & Samuel Orso"
 date: "24 May 2021"
 output:
@@ -37,8 +37,40 @@ also, check about [infinite moon reader](https://yihui.org/en/2019/02/ultimate-i
 ---
 
 # Motivation
+## State 1: programming with `R` is easy...
 
+```{r echo=FALSE, fig.align='center', out.width=612, out.height=408}
+knitr::include_graphics("assets/happy_programmer.jpg")
+```
 
+---
+
+# Motivation
+## State 2: ... but the run-time is so slow
+
+```{r echo=FALSE, fig.align='center', out.width=612, out.height=408}
+knitr::include_graphics("assets/sad_programmer.jpg")
+```
+
+---
+
+# It is not a piece of
+<img src="assets/pi-pie.png" style="height:100px; width:150px; position:absolute; top:7%; left:34.5%;"/>
+
+Suppose your problem is to find $\pi$ using [Leibniz formula for $\pi$](https://en.wikipedia.org/wiki/Leibniz_formula_for_%CF%80). Leibniz's idea is to use the relation $\frac{\pi}{4}=\arctan(1)$
+and the fact that $$\arctan(1) = \sum_{k=1}^\infty\frac{(-1)^k}{2k+1}$$
+
+An algorithm to solve this problem could be
+```{r, eval = FALSE, attr.source='.numberLines'}
+x = 1.0
+pi = 1.0
+choose n
+for k from 1 to n
+  x <- -x
+  pi <- pi + x / (2.0 * k + 1.0)
+  
+pi = 4.0 * pi
+```
 
 
 ---
