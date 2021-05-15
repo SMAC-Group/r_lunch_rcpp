@@ -67,21 +67,42 @@ also, check about [infinite moon reader](https://yihui.org/en/2019/02/ultimate-i
 # It is not a piece of
 &lt;img src="assets/pi-pie.png" style="height:100px; width:150px; position:absolute; top:7%; left:34.5%;"/&gt;
 
-Suppose your problem is to find `\(\pi\)` using [Leibniz formula for `\(\pi\)`](https://en.wikipedia.org/wiki/Leibniz_formula_for_%CF%80). Leibniz's idea is to use the relation `\(\frac{\pi}{4}=\arctan(1)\)`
+Suppose your problem is to find `\(\pi\)` using [Leibniz formula for `\(\pi\)`](https://en.wikipedia.org/wiki/Leibniz_formula_for_%CF%80). Leibniz's idea is to use the relation `$$\frac{\pi}{4}=\arctan(1)$$`
 and the fact that `$$\arctan(1) = \sum_{k=1}^\infty\frac{(-1)^k}{2k+1}$$`
 
 An algorithm to solve this problem could be
 
 ```r
-x = 1.0
-pi = 1.0
-choose n
+choose n and set
+x &lt;- 1.0
+pi &lt;- 1.0
 for k from 1 to n
   x &lt;- -x
   pi &lt;- pi + x / (2.0 * k + 1.0)
-  
-pi = 4.0 * pi
+return pi &lt;- 4.0 * pi
 ```
+
+---
+
+# It is not a piece of
+&lt;img src="assets/pi-pie.png" style="height:100px; width:150px; position:absolute; top:7%; left:34.5%;"/&gt;
+
+For this particular task, we can compare the performances of several programming languages.
+
+&lt;img src="assets/logos.png" width="750" height="450" style="display: block; margin: auto;" /&gt;
+---
+# It is not a piece of
+&lt;img src="assets/pi-pie.png" style="height:100px; width:150px; position:absolute; top:7%; left:34.5%;"/&gt;
+
+&lt;img src="assets/speed_comparison.png" width="750" height="450" style="display: block; margin: auto;" /&gt;
+(Source: [github.com/niklas-heer/speed-comparison](https://github.com/niklas-heer/speed-comparison))
+
+---
+# It is not a piece of
+&lt;img src="assets/pi-pie.png" style="height:100px; width:150px; position:absolute; top:7%; left:34.5%;"/&gt;
+
+&lt;img src="assets/speed_comparison_2.png" width="750" height="450" style="display: block; margin: auto;" /&gt;
+(Source: [github.com/niklas-heer/speed-comparison](https://github.com/niklas-heer/speed-comparison))
 
 
 ---
@@ -209,7 +230,7 @@ microbenchmark::microbenchmark(f1)
 ```
 ## Unit: nanoseconds
 ##  expr min lq  mean median uq  max neval
-##    f1  38 40 71.75     41 42 2856   100
+##    f1  34 39 64.16     39 40 2529   100
 ```
 
 These results summarize how long each query took: the minimum (`min`), lower and upper quartiles (`lq` and `uq`, respectively) and the mean, median and maximum, for each of the number of evaluations (`neval`, with the default value of 100 used in this case). `cld` reports the relative rank of each row in the form of 'compact letter display'.
@@ -807,7 +828,7 @@ arma::colvec wvar_cpp(arma::vec Xt) {
 # Use case: The Haar Wavelet Variance 
 ### Performance gain
 
-&lt;img src="slides_r_lunch_rcpp_files/figure-html/unnamed-chunk-37-1.png" style="display: block; margin: auto;" /&gt;
+&lt;img src="slides_r_lunch_rcpp_files/figure-html/unnamed-chunk-40-1.png" style="display: block; margin: auto;" /&gt;
 
 
 

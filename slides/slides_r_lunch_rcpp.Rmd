@@ -62,15 +62,9 @@ and the fact that $$\arctan(1) = \sum_{k=1}^\infty\frac{(-1)^k}{2k+1}$$
 
 An algorithm to solve this problem could be
 ```{r, eval = FALSE}
-<<<<<<< HEAD
 choose n and set
 x <- 1.0
 pi <- 1.0
-=======
-x = 1.0
-pi = 1.0
-choose n
->>>>>>> 8a0527d944a9ab48ac1648898583c4c4426b3564
 for k from 1 to n
   x <- -x
   pi <- pi + x / (2.0 * k + 1.0)
