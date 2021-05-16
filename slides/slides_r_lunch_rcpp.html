@@ -230,7 +230,7 @@ microbenchmark::microbenchmark(f1)
 ```
 ## Unit: nanoseconds
 ##  expr min lq  mean median uq  max neval
-##    f1  34 39 64.16     39 40 2529   100
+##    f1  33 35 63.22     36 36 2722   100
 ```
 
 These results summarize how long each query took: the minimum (`min`), lower and upper quartiles (`lq` and `uq`, respectively) and the mean, median and maximum, for each of the number of evaluations (`neval`, with the default value of 100 used in this case). `cld` reports the relative rank of each row in the form of 'compact letter display'.
@@ -246,7 +246,7 @@ Before implementing a given code chunk that constitutes a bottleneck in `C++`, o
 
 General advice are for example to declare type and length of data structure explicitly rather then to append to existing data structure as well as to use efficiently implemented `R` functions when possible. 
 
-Hence, there exists different way to script a function in `R`, and depending on the functions and objects defined, different implementation will have different computation time.
+Hence, there exists different way to script a function in `R`, and depending on the functions and objects defined, different implementation will have different run-time.
 
 For a comprehensive discussion on the topic, we recommend [Efficient R programming](https://csgillespie.github.io/efficientR/).
 
@@ -255,7 +255,8 @@ For a comprehensive discussion on the topic, we recommend [Efficient R programmi
 
 ---
 # Optimizing `R` code: Illustration
-TO illustrate this notion, l^et us consider a simple example where we want to construct a vector of length `\(n\)`.
+TO illustrate this notion, let us consider a simple example where we want to construct a vector of length `\(n\)` with the sequence of `\(\mathbb{N}\)` from 1 to `\(n\)`.
+
 &lt;!-- Let us consider a simple example where we consider applying the function `$$f: \mathbb{R}^p \rightarrow \mathbb{R} = n^{-1}\sum_{i=1}^n X_i$$` to each element of a list. --&gt;
 
 
@@ -484,8 +485,46 @@ RETURN_TYPE FUNCTION_NAME(ARGUMENT_TYPE ARGUMENT){
 
 ---
 # `Rcpp sugar`
+&lt;blockquote&gt;
+Put succinctly, the motivation of Rcpp sugar is to bring a subset of the high-level R syntax in C++.
+.right[-- &lt;cite&gt;Dirk Eddelbuettel&lt;/cite&gt;]
+&lt;/blockquote&gt;
 
-The `Rcpp` library provide a variety of `R`-like functions. This set of functions is defined as `Rcpp sugar`. It provides vectorized procedures, functions for strings, statistical functions and other useful `R`-like functions.
+
+The `Rcpp` library provide a variety of `R`-like functions. This set of functions is defined as `Rcpp sugar`. It provides vectorized procedures, functions for strings, statistical functions and other useful `R`-like functions. Among these functions we can find:
+
+.pull-left[
+**Mathematical function anf ifelse**
+
+```cpp
+IntegerVector x;
+IntegerVector y ;
+abs( x )
+exp( x )
+floor( x )
+ceil( x )
+pow(x, z) # x to the power of z
+ifelse( x &gt; y, x, 2 )
+```
+]
+
+.pull-right[
+**d/q/p/r statistical functions**
+
+
+```cpp
+x1 = dnorm(y1, 0, 1);
+x2 = qnorm(y2, 0, 1);
+x3 = pnorm(y3, 0, 1);
+x4 = rnorm(n, 0, 1);
+```
+
+]
+
+
+.footnote[Similar d/q/p/r functions are provided for the most common distributions:  beta, binom, cauchy, chisq, exp, f, gamma,
+geom, hyper, lnorm, logis, nbeta, nbinom, nbinom_mu, nchisq, nf, norm, nt, pois, t, unif, and weibull.
+]
 
 
 
@@ -630,11 +669,32 @@ print_i_cpp(3)
 
 
 ---
+# `C++` libraries
 
+
+Similarly as in `R`, there exists a variety of external libraries that can be loaded and used in combination with `Rcpp`.
+
+In `R` one would load an external library (package) with
+
+```r
+library(name_of_the_external_library)
+```
+
+Similarly, one can load an external `C++` library by specifying in the header of a `.cpp` file with:
+
+
+```cpp
+#include &lt;name_of_the_external_library&gt;
+```
+
+The equivalent of [base](https://stat.ethz.ch/R-manual/R-devel/library/base/html/base-package.html) `R` in `C++` is the `C++` Standard Library (`std`). `std` is a collection of classes and functions written in the core language. One can use functions from `std` in a `Rcpp` script by specifying the prefix `std::` before a function.
+
+
+
+---
 # Including support for `Armadillo`  .pull-right-narrow[![](assets/armadillo_logo2.png)]
 
-
-In addition to the functions provided by `Rcpp` and the `C++` standard library `std::`, one can also make use of `C++` linear algebra libraries such as `Armadillo` and `Eigen` with respectively `R` package `RcppArmadillo` and `RcppEigen`. Such libraries provides high-level syntax and efficient functions to work with data that can be stored in vectors, matrices, cubes, dense and sparse matrices. We present here how to use the `Armadillo` library. 
+`Armadillo` is a `C++` library for linear algebra and scientific programming. It provides a high-level syntax and efficient functions to work with data that can be stored in vectors, matrices, cubes, dense and sparse matrices. The `R` package `RcppArmadillo` provides an interface from `R` to and from `Armadillo` by utilising the `Rcpp` `R`/`C++` interface library. Install it with:
 
 
 
@@ -654,8 +714,7 @@ One can source a `.cpp` file that make use of `Armadillo` by specifying the foll
 
 `[[Rcpp::depends(RcppArmadillo)]]` ensures that `sourceCpp()` can compile and load the `RcppArmadillo` headers.
 
----
-# How `RcppArmadillo` works
+
 
 ---
 # `Armadillo` basic syntax
@@ -663,11 +722,16 @@ One can source a `.cpp` file that make use of `Armadillo` by specifying the foll
 | Operation| R |Armadillo|
 |:---:|:---:|:---:|
 | Matrix constructor |`X = matrix(1,10,10)` |`X = ones(10,10)`|
-|Matrix indexing | `X[1,1] `| `X(0,0)`| 
 |Matrix dimensions | `nrow(X)` and `ncol(X)`| `X.n_rows` and `X.n_cols` | 
+|Matrix indexing | `X[1,1] `| `X(0,0)`| 
+|Matrix transpose | `t(X)`| `x.t()`| 
+|Extract matrix row or column | `X[, p:q]` and `X[, p:q]` | `X.cols(p, q)` and `X.rows(p, q)`| 
 |Matrix joins operations | `X = cbind(A, B)` and `X = rbind(A, B)`| `X = join_horiz(A,B)` and `X = join_vert(A,B)` |
+| Vector constructor| `x = numeric(10)`| `x = vec(10)`| 
+| Vector dimension| `length(x)`| `x.n_elem`| 
 
-
+.footnote[Note that we don't specify the `arma::` prefix that need to be specified when using `using namespace Rcpp;`
+]
 
 
 
@@ -679,7 +743,9 @@ One can source a `.cpp` file that make use of `Armadillo` by specifying the foll
 We here consider a real case application of rewriting `R` code in `C++` code.
 For this example, we will consider a naive implementation of an estimator of the **Haar Wavelet Variance**.
 
-This statistical quantity is used in the context of inference of time series models. Indeed, let `\(F_{\boldsymbol{\theta}}, \boldsymbol{\theta} \in \Theta \subseteq \mathbb{R}^{p}\)` be the true data generating process of a univariate time series `\(\left\{Y_{t} ; t \in \mathbb{Z}\right\}\)`, the Generalized Method of Wavelet Moment (GMWM) estimator,  `\(\boldsymbol{\hat{\theta}}\)`,  exploits the mapping between `\(\boldsymbol{\theta}\)` and the Wavelet Variance `\(\boldsymbol{\nu}\)` by minimizing the distance between the empirical and estimated Wavelet Variance. 
+This statistical quantity is used in the context of inference of time series models. 
+
+Let `\(F_{\boldsymbol{\theta}}, \boldsymbol{\theta} \in \Theta \subseteq \mathbb{R}^{p}\)` be the true data generating process of a univariate time series `\(\left\{Y_{t} ; t \in \mathbb{Z}\right\}\)`, the Generalized Method of Wavelet Moment (GMWM) estimator,  `\(\boldsymbol{\hat{\theta}}\)`,  exploits the mapping between `\(\boldsymbol{\theta}\)` and the Wavelet Variance `\(\boldsymbol{\nu}\)` by minimizing the distance between the empirical and estimated Wavelet Variance. 
 
 Hence, the GMWM estimator is defined as
 $$
@@ -687,7 +753,26 @@ $$
 $$
 
 
-A basic algorithm to compute an estimator of this quantity provide an interesting use case as it provide an example on how to mix the use of different `Rcpp` functions and `arma::` classes.
+where `\(\hat{\boldsymbol{\nu}}\)` is the empirical (estimated Wavelet Variance), `\({\boldsymbol{\nu}}\)` the theoretical (model-implied) Wavelet Variance and `\({\boldsymbol{\Omega}}\)` is a positive definite matrix.
+
+
+
+
+---
+
+# Case study: The Haar Wavelet Variance
+
+A simple algorithm to compute an estimator of the Wavelet Variance provide an interesting use case as it provide an example on how to mix the use of different `Rcpp` functions and `arma::` classes.
+
+Algorithm
+
+Let `\(Y_t\)` where t `\(\in\)` `\(\{1,\ldots, T\}\)` be a univariate time series.
+
+Define `\(J = log_2(T)-1\)` and scale `\(\tau_j = 2^j\)` where `\(j \in \{1, \ldots, J\}\)` 
+
+For each scale `\(\tau_j\)`:
+
+`\(\hspace{.8cm}\)` Compute the Wavelet coefficients `\(W_{t,\tau_j}\)` defined as 
 
 
 ---
@@ -697,22 +782,8 @@ A basic algorithm to compute an estimator of this quantity provide an interestin
 
 &lt;!-- ![](assets/wvar_graph.png) --&gt;
 &lt;div align = "center"&gt;
-&lt;img src="assets/wvar_graph.png" width="80%"/&gt;
+&lt;img src="assets/wvar_graph.png" width="90%"/&gt;
 &lt;/div&gt;
-
-
----
-
-# Case study: The Haar Wavelet Variance
-Algorithm
-
-Let `\(Y_t\)` where t `\(\in\)` `\(\{1,\ldots, T\}\)` be a univariate time series.
-
-Define `\(J = log_2(T)-1\)`,  `\(j \in \{1, \ldots, J\}\)` and `\(\tau_j = 2^j\)`
-
-`\(\hspace{.8cm}\)` 
-
-
 
 
 
@@ -828,7 +899,7 @@ arma::colvec wvar_cpp(arma::vec Xt) {
 # Use case: The Haar Wavelet Variance 
 ### Performance gain
 
-&lt;img src="slides_r_lunch_rcpp_files/figure-html/unnamed-chunk-40-1.png" style="display: block; margin: auto;" /&gt;
+&lt;img src="slides_r_lunch_rcpp_files/figure-html/unnamed-chunk-44-1.png" style="display: block; margin: auto;" /&gt;
 
 
 
