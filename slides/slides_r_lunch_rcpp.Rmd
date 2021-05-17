@@ -60,7 +60,7 @@ knitr::include_graphics("assets/sad_programmer.jpg")
 Suppose your problem is to find $\pi$ using [Leibniz formula for $\pi$](https://en.wikipedia.org/wiki/Leibniz_formula_for_%CF%80). Leibniz's idea is to use the relation $$\frac{\pi}{4}=\arctan(1)$$
 and the fact that $$\arctan(1) = \sum_{k=1}^\infty\frac{(-1)^k}{2k+1}$$
 
-An algorithm to solve this problem could be
+An algorithm to solve this problem is
 ```{r, eval = FALSE}
 choose n and set
 x <- 1.0
@@ -76,7 +76,7 @@ return pi <- 4.0 * pi
 # It is not a piece of
 <img src="assets/pi-pie.png" style="height:100px; width:150px; position:absolute; top:7%; left:34.5%;"/>
 
-For this particular task, we can compare the performances of several programming languages.
+For this particular task, the performances of several programming languages are compared.
 
 ```{r echo=FALSE, fig.align='center', out.width=750, out.height=450}
 knitr::include_graphics("assets/logos.png")
