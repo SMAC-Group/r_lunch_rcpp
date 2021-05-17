@@ -945,9 +945,10 @@ legend("topleft",col = c("darkorange", "darkblue"), legend= c("R", "CPP"), lwd=1
 # Parallelisation with openMPI
 
 
+
 ---
 
-# To go further (Ressources)
+# Ressources (to go further)
 
 - [Rcpp for everyone](https://teuder.github.io/rcpp4everyone_en/)
 
@@ -958,6 +959,15 @@ legend("topleft",col = c("darkorange", "darkblue"), legend= c("R", "CPP"), lwd=1
 - [Efficient R programming](https://csgillespie.github.io/efficientR/)
 
 - [Armadillo documentation](http://arma.sourceforge.net/docs.html)
+---
+
+
+# References
+```{r, results = "asis", echo=FALSE}
+PrintBibliography(myBib)
+```
+
+
 ---
 class: sydney-blue, center, middle
 
