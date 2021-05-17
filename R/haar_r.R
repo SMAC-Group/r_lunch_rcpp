@@ -1,3 +1,6 @@
+# rm(list=ls())
+# library(simts)
+
 #calculate wavelet coefficient with modwt coefficient
 wvar_r = function(Xt){
   tsl = length(Xt)
@@ -21,11 +24,11 @@ wvar_r = function(Xt){
       #define t/2 for scale j
       mid_id = length(pos_scale_i)/2
       #define left and right position
-      neg_id = pos_scale_i[1:mid_id] 
-      pos_id =  tail(pos_scale_i,length(pos_scale_i)/2)
+      pos_id = pos_scale_i[1:mid_id] 
+      neg_id =  tail(pos_scale_i,length(pos_scale_i)/2)
       #calculate haar coefficient define as the weighted mean where weight equal -1, 1
       xt_neg = Xt[neg_id] * -1
-      xt_pos = Xt[pos_id]
+      xt_pos = Xt[pos_id] 
       xt_weighted = c(xt_neg, xt_pos)
       coef_scale_i[cl] = mean(xt_weighted)
     }
@@ -43,3 +46,9 @@ wvar_r = function(Xt){
   #return haar coefficients and wvariance
   return(wvariance)
 }
+
+
+
+# Xt = gen_gts(n=10^3, model = WN(1))
+# wv::wvar(Xt)
+# wvar_r(Xt)

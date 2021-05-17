@@ -31,8 +31,8 @@ arma::colvec wvar_cpp(arma::vec Xt) {
       arma::vec pos_scale_i = arma::linspace(cl-1, i_scale +cl -2,  i_scale );
       //  define negative, positive and mid id
       int mid_id = pos_scale_i.n_elem/2 ;
-      arma::vec pos_id = pos_scale_i.tail(mid_id);
-      arma::vec neg_id = pos_scale_i.head(mid_id);
+      arma::vec neg_id = pos_scale_i.tail(mid_id);
+      arma::vec pos_id = pos_scale_i.head(mid_id);
       // Convert to position to arma uvec
       arma::uvec pos_id_2 = arma::conv_to<arma::uvec>::from(pos_id);
       arma::uvec neg_id_2 = arma::conv_to<arma::uvec>::from(neg_id);
@@ -65,5 +65,6 @@ arma::colvec wvar_cpp(arma::vec Xt) {
 //
 
 /*** R
+
 
 */

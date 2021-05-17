@@ -229,8 +229,8 @@ microbenchmark::microbenchmark(f1)
 
 ```
 ## Unit: nanoseconds
-##  expr min lq  mean median uq  max neval
-##    f1  33 35 63.22     36 36 2722   100
+##  expr min lq   mean median uq   max neval
+##    f1  34 36 187.01     37 38 14549   100
 ```
 
 These results summarize how long each query took: the minimum (`min`), lower and upper quartiles (`lq` and `uq`, respectively) and the mean, median and maximum, for each of the number of evaluations (`neval`, with the default value of 100 used in this case). `cld` reports the relative rank of each row in the form of 'compact letter display'.
@@ -757,23 +757,64 @@ where `\(\hat{\boldsymbol{\nu}}\)` is the empirical (estimated Wavelet Variance)
 
 
 
+See (Guerrier, Skaloud, Stebler, et al., 2013) for a comprehensive discussion on GMWM estimator.
+
 
 ---
 
 # Case study: The Haar Wavelet Variance
 
-A simple algorithm to compute an estimator of the Wavelet Variance provide an interesting use case as it provide an example on how to mix the use of different `Rcpp` functions and `arma::` classes.
 
-Algorithm
 
-Let `\(Y_t\)` where t `\(\in\)` `\(\{1,\ldots, T\}\)` be a univariate time series.
+A simple algorithm to compute an estimator of the Wavelet Variance provide an interesting case study as it provide an example on how to mix the use of different `Rcpp` functions and `arma::` classes.
+
+**Algorithm**
+
+Let `\(\{Y_t; t \in \mathbb{Z}  \}\)` be a univariate time series.
 
 Define `\(J = log_2(T)-1\)` and scale `\(\tau_j = 2^j\)` where `\(j \in \{1, \ldots, J\}\)` 
 
 For each scale `\(\tau_j\)`:
 
-`\(\hspace{.8cm}\)` Compute the Wavelet coefficients `\(W_{t,\tau_j}\)` defined as 
+`\(\hspace{.8cm}\)` Compute the Wavelet coefficients defined as `\(\bar{W}_{j, t}=\sum_{l=0}^{L_{j}-1} \tilde{h}_{j, l} y_{t-l}, t \in \mathbb{Z}\)` where `\(\tilde{h}_{j,l}\)` is the Haar wavelet `\(\hspace{.8cm}\)` filter for scale `\(\tau_j = 2^{j}\)` and `\(L_j = T-2^j+1\)`
 
+`\(\hspace{.8cm}\)` We define the estimated Wavelet Variance for scale `\(j\)`, noted `\(\hat{\nu}^2(\tau_j)\)` as `\(\text{var}(\bar{W}_{j, t})\)`
+
+&amp;nbsp;
+
+ See (Percival, 1995) for a comprehensive discussion on the estimation of the Wavelet Variance.
+
+---
+
+
+# Case study: The Haar Wavelet filter
+
+The Wavelet Variance can be interpreted as the variance of a process after
+it has been subject to an approximate bandpass filter.
+
+The Haar wavelet's mother wavelet function can be defined as
+`$$\psi(t)=\left\{\begin{array}{ll}
+1 &amp; 0 \leq t&lt;\frac{1}{2} \\
+-1 &amp; \frac{1}{2} \leq t&lt;1 \\
+0 &amp; \text { otherwise }
+\end{array}\right.$$`
+
+&lt;!-- ![](assets/wvar_graph.png) --&gt;
+.pull-left[
+&lt;div align = "left"&gt;
+&lt;img src="assets/haar_filter_2_2.png" width="110%"/&gt;
+&lt;/div&gt;
+
+]
+
+.pull-right[
+&lt;div align = "right"&gt;
+&lt;img src="assets/haar_filter_2.png" width="60%"/&gt;
+&lt;/div&gt;
+]
+
+
+See (Schimmack, Nguyen, and Mercorelli, 2016) for a comprehensive discussion on the anatomy and properties of the Haar Wavelet filter.
 
 ---
 
@@ -786,13 +827,11 @@ For each scale `\(\tau_j\)`:
 &lt;/div&gt;
 
 
-
-
 ---
 # Case study: The Haar Wavelet Variance 
 
 .pull-left[
-**`R` code**
+`R` code
 .scroll-box-14[
 
 ```r
@@ -818,11 +857,11 @@ wvar_r = function(Xt){
       #define t/2 for scale j
       mid_id = length(pos_scale_i)/2
       #define left and right position
-      neg_id = pos_scale_i[1:mid_id] 
-      pos_id =  tail(pos_scale_i,length(pos_scale_i)/2)
+      pos_id = pos_scale_i[1:mid_id] 
+      neg_id =  tail(pos_scale_i,length(pos_scale_i)/2)
       #calculate haar coefficient define as the weighted mean where weight equal -1, 1
       xt_neg = Xt[neg_id] * -1
-      xt_pos = Xt[pos_id]
+      xt_pos = Xt[pos_id] 
       xt_weighted = c(xt_neg, xt_pos)
       coef_scale_i[cl] = mean(xt_weighted)
     }
@@ -832,8 +871,6 @@ wvar_r = function(Xt){
   #calculate wavelet variance
   wvariance = vector(mode = "numeric", length = length(all_j))
   for(i in seq(length(all_j))){
-    # wvariance[i] = var(haar_coeff_list[[i]])*(length(haar_coeff_list[[i]])-1)/length(haar_coeff_list[[i]])
-    # wvariance[i] = var(haar_coeff_list[[i]])
     haar_coef = haar_coeff_list[[i]]
     wvariance[i] = t(haar_coef) %*% haar_coef / length(haar_coef)
   }
@@ -843,7 +880,7 @@ wvar_r = function(Xt){
 ```
 ]]
 .pull-right[
-**`C++` code**
+`C++` code
 .scroll-box-14[
 
 ```cpp
@@ -863,8 +900,8 @@ arma::colvec wvar_cpp(arma::vec Xt) {
       arma::vec pos_scale_i = arma::linspace(cl-1, i_scale +cl -2,  i_scale );
       //  define negative, positive and mid id
       int mid_id = pos_scale_i.n_elem/2 ;
-      arma::vec pos_id = pos_scale_i.tail(mid_id);
-      arma::vec neg_id = pos_scale_i.head(mid_id);
+      arma::vec neg_id = pos_scale_i.tail(mid_id);
+      arma::vec pos_id = pos_scale_i.head(mid_id);
       // Convert to position to arma uvec
       arma::uvec pos_id_2 = arma::conv_to&lt;arma::uvec&gt;::from(pos_id);
       arma::uvec neg_id_2 = arma::conv_to&lt;arma::uvec&gt;::from(neg_id);
@@ -889,14 +926,13 @@ arma::colvec wvar_cpp(arma::vec Xt) {
   return wvariance;
   
 }
-
 ```
 ]]
 
 
 
 ---
-# Use case: The Haar Wavelet Variance 
+# Case study: The Haar Wavelet Variance 
 ### Performance gain
 
 &lt;img src="slides_r_lunch_rcpp_files/figure-html/unnamed-chunk-44-1.png" style="display: block; margin: auto;" /&gt;

@@ -16,7 +16,7 @@ library(RcppArmadillo)
 
 
 # loading functions with source cpp
-sourceCpp("R/sum_cpp.cpp")
+# sourceCpp("R/sum_cpp.cpp")
 
 # loading function with inline cpp
 
