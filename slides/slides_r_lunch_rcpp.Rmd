@@ -99,6 +99,37 @@ knitr::include_graphics("assets/speed_comparison_2.png")
 ```
 (Source: [github.com/niklas-heer/speed-comparison](https://github.com/niklas-heer/speed-comparison))
 
+---
+# Compiled program
+
+```{r echo=FALSE, fig.align='center', out.width=750, out.height=111}
+knitr::include_graphics("assets/compiled.png")
+```
+
+- Program is translated into native machine instruction (compilation)
+
+
+```{r echo=FALSE, fig.align='center', out.width=750, out.height=117}
+knitr::include_graphics("assets/compiled_pl.png")
+```
+
+---
+# Interpreted program
+
+```{r echo=FALSE, fig.align='center', out.width=750, out.height=111}
+knitr::include_graphics("assets/interpreted.png")
+```
+
+- Program is translated into another code (bytecode). An interpreter then performs the required actions.
+
+
+```{r echo=FALSE, fig.align='center', out.width=750, out.height=117}
+knitr::include_graphics("assets/interpreted_pl.png")
+```
+
+---
+# `R` interfaces to subroutine in other languages
+- `R` is basically written in `C` and `Fortran`
 
 ---
 
