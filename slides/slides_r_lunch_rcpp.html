@@ -185,31 +185,6 @@ source:
 &lt;!-- In such cases, it is interesting to identify where are the bottleneck in a given code and rewrite these chunks of code in a lower-level language to benefit from faster execution time. --&gt;
 
 
----
-
-# Using `C++` in `R` 
-
-`Rcpp` is an `R` package that makes it very easy to connect `C++` code to `R`. Written by Dirk Eddelbuettel and Romain Francois, `Rcpp` let you compile and use `C++` functions directly in `R`.
-
-You can install `Rcpp` with
-
-```r
-install.packages("Rcpp")
-```
-
-Note that you will also need to install `Rtools` to compile `C++` code. To do so, follow the instructions [here](https://cran.r-project.org/bin/macosx/tools/) if you have a Mac or [here](https://cran.r-project.org/bin/windows/Rtools/) for a Windows system. 
-
-If you are on Linux, depending on your distro, you can use:
-
-```bash
-# RHEL/CentOS
-sudo yum update
-sudo yum install R
-# Ubuntu
-sudo apt-get update
-sudo apt-get install r-base r-base-dev
-```
-
 
 
 
@@ -265,7 +240,7 @@ microbenchmark::microbenchmark(f1)
 ```
 ## Unit: nanoseconds
 ##  expr min lq  mean median uq  max neval
-##    f1  37 38 52.48     39 40 1055   100
+##    f1  34 35 66.32     36 37 2975   100
 ```
 
 These results summarize how long each query took: the minimum (`min`), lower and upper quartiles (`lq` and `uq`, respectively) and the mean, median and maximum, for each of the number of evaluations (`neval`, with the default value of 100 used in this case). `cld` reports the relative rank of each row in the form of 'compact letter display'.
@@ -348,6 +323,31 @@ Unit: seconds
 &lt;!-- `R` is know to be particularly inefficient with iterative loop such as `for` and `while` loop. When computing operations on specific data structures, the `apply()` family of functions proposes a higher level interface to manipulate and execute operations on slices of data structure in a repetitive way rather than by explicit `for` loops. Note however, that `apply()`-type functions are not necessarily faster than `for` loop, but they provide an easy interface such operations and increase code readability. --&gt;
 
 &lt;!-- Find a comprehensive tutorial on the `apply()` family of functions [here](https://www.datacamp.com/community/tutorials/r-tutorial-apply-family). --&gt;
+
+---
+
+# Introduction to `C++` and `Rcpp`
+
+`Rcpp` is an `R` package that makes it very easy to connect `C++` code to `R`. Written by Dirk Eddelbuettel and Romain Francois, `Rcpp` let you compile and use `C++` functions directly in `R`.
+
+You can install `Rcpp` with
+
+```r
+install.packages("Rcpp")
+```
+
+Note that you will also need to install `Rtools` to compile `C++` code. To do so, follow the instructions [here](https://cran.r-project.org/bin/macosx/tools/) if you have a Mac or [here](https://cran.r-project.org/bin/windows/Rtools/) for a Windows system. 
+
+If you are on Linux, depending on your distro, you can use:
+
+```bash
+# RHEL/CentOS
+sudo yum update
+sudo yum install R
+# Ubuntu
+sudo apt-get update
+sudo apt-get install r-base r-base-dev
+```
 
 
 
@@ -794,7 +794,7 @@ where `\(\hat{\boldsymbol{\nu}}\)` is the empirical (estimated Wavelet Variance)
 
 
 
-See (Guerrier, Skaloud, Stebler, et al., 2013) for a comprehensive discussion on GMWM estimator.
+See (Guerrier, Skaloud, Stebler, and Victoria-Feser, 2013) for a comprehensive discussion on GMWM estimator.
 
 
 ---
@@ -999,12 +999,11 @@ In is then possible to parallelize an independent `for` loop with:
 ```cpp
 // [[Rcpp::export()]]
 *void omp2 (int n_threads = 1) {
-*omp_set_num_threads(n_threads) ;
-*# pragma omp parallel for
-for (int i = 0 ; i &lt; 10 ; i++) {
-Rcout &lt;&lt; " " &lt;&lt; i &lt;&lt; " " ;
-}
-Rcout &lt;&lt; std::endl ;
+* omp_set_num_threads(n_threads) ;
+* # pragma omp parallel for
+  for (int i = 0 ; i &lt; 10 ; i++) {
+    Rcout &lt;&lt; " " &lt;&lt; i &lt;&lt; " " ;
+  }
 }
 
 ```
@@ -1033,13 +1032,17 @@ Rcout &lt;&lt; std::endl ;
 
 
 # References
-Guerrier, S., J. Skaloud, Y. Stebler, et al. (2013). "Wavelet-variance-based estimation for composite
-stochastic processes". In: _Journal of the American Statistical Association_ 108.503, pp. 1021-1030.
+Guerrier, S., J. Skaloud, Y. Stebler, et al. (2013).
+"Wavelet-variance-based estimation for composite stochastic processes".
+In: _Journal of the American Statistical Association_ 108.503, pp.
+1021-1030.
 
-Percival, D. P. (1995). "On estimation of the wavelet variance". In: _Biometrika_ 82.3, pp. 619-631.
+Percival, D. P. (1995). "On estimation of the wavelet variance". In:
+_Biometrika_ 82.3, pp. 619-631.
 
-Schimmack, M., S. Nguyen, and P. Mercorelli (2016). "Anatomy of haar wavelet filter and its
-implementation for signal processing". In: _IFAC-PapersOnLine_ 49.6, pp. 99-104.
+Schimmack, M., S. Nguyen, and P. Mercorelli (2016). "Anatomy of haar
+wavelet filter and its implementation for signal processing". In:
+_IFAC-PapersOnLine_ 49.6, pp. 99-104.
 
 
 ---

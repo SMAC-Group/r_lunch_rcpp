@@ -202,29 +202,6 @@ knitr::include_graphics("assets/thelogo.png")
 <!-- In such cases, it is interesting to identify where are the bottleneck in a given code and rewrite these chunks of code in a lower-level language to benefit from faster execution time. -->
 
 
----
-
-# Using `C++` in `R` 
-
-`Rcpp` is an `R` package that makes it very easy to connect `C++` code to `R`. Written by Dirk Eddelbuettel and Romain Francois, `Rcpp` let you compile and use `C++` functions directly in `R`.
-
-You can install `Rcpp` with
-```{r, eval =F}
-install.packages("Rcpp")
-```
-
-Note that you will also need to install `Rtools` to compile `C++` code. To do so, follow the instructions [here](https://cran.r-project.org/bin/macosx/tools/) if you have a Mac or [here](https://cran.r-project.org/bin/windows/Rtools/) for a Windows system. 
-
-If you are on Linux, depending on your distro, you can use:
-```{bash, eval =F}
-# RHEL/CentOS
-sudo yum update
-sudo yum install R
-# Ubuntu
-sudo apt-get update
-sudo apt-get install r-base r-base-dev
-```
-
 
 
 
@@ -353,6 +330,29 @@ Unit: seconds
 <!-- `R` is know to be particularly inefficient with iterative loop such as `for` and `while` loop. When computing operations on specific data structures, the `apply()` family of functions proposes a higher level interface to manipulate and execute operations on slices of data structure in a repetitive way rather than by explicit `for` loops. Note however, that `apply()`-type functions are not necessarily faster than `for` loop, but they provide an easy interface such operations and increase code readability. -->
 
 <!-- Find a comprehensive tutorial on the `apply()` family of functions [here](https://www.datacamp.com/community/tutorials/r-tutorial-apply-family). -->
+
+---
+
+# Introduction to `C++` and `Rcpp`
+
+`Rcpp` is an `R` package that makes it very easy to connect `C++` code to `R`. Written by Dirk Eddelbuettel and Romain Francois, `Rcpp` let you compile and use `C++` functions directly in `R`.
+
+You can install `Rcpp` with
+```{r, eval =F}
+install.packages("Rcpp")
+```
+
+Note that you will also need to install `Rtools` to compile `C++` code. To do so, follow the instructions [here](https://cran.r-project.org/bin/macosx/tools/) if you have a Mac or [here](https://cran.r-project.org/bin/windows/Rtools/) for a Windows system. 
+
+If you are on Linux, depending on your distro, you can use:
+```{bash, eval =F}
+# RHEL/CentOS
+sudo yum update
+sudo yum install R
+# Ubuntu
+sudo apt-get update
+sudo apt-get install r-base r-base-dev
+```
 
 
 
