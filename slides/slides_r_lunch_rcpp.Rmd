@@ -18,10 +18,10 @@ output:
       ratio: '16:9' # alternatives '16:9' or '4:3' or others e.g. 13:9
       navigation:
         scroll: false # disable slide transitions by scrolling
+
 ---
 
-
-# Xaringan support 
+<!-- # Xaringan support 
 
 @Sam for an introduction to xaringan, see
 
@@ -33,8 +33,7 @@ and
 https://github.com/garthtarr/sydney_xaringan
 
 also, check about [infinite moon reader](https://yihui.org/en/2019/02/ultimate-inf-mr/) for development
-
----
+-->
 
 # Motivation
 ## State 1: programming with `R` is easy...
@@ -108,6 +107,9 @@ knitr::include_graphics("assets/compiled.png")
 
 - Program is translated into native machine instruction (compilation)
 
+&nbsp;
+
+&nbsp;
 
 ```{r echo=FALSE, fig.align='center', out.width=750, out.height=117}
 knitr::include_graphics("assets/compiled_pl.png")
@@ -122,6 +124,9 @@ knitr::include_graphics("assets/interpreted.png")
 
 - Program is translated into another code (bytecode). An interpreter then performs the required actions.
 
+&nbsp;
+
+&nbsp;
 
 ```{r echo=FALSE, fig.align='center', out.width=750, out.height=117}
 knitr::include_graphics("assets/interpreted_pl.png")
@@ -129,7 +134,10 @@ knitr::include_graphics("assets/interpreted_pl.png")
 
 ---
 # `R` interfaces to subroutine in other languages
-- `R` is basically written in `C` and `Fortran`
+- `R` is basically written in `C` and `Fortran` (`.Call()` interface to `C`)
+- 
+
+source: 
 
 ---
 
@@ -248,7 +256,7 @@ knitr::include_url("https://rstudio.github.io/profvis/examples.html", height = "
 ---
 # Measuring computation time in `R`
 
-There exists various ways to measure computation time in `R`. We recommend using the `microbenchmark` package available with
+There exist various ways to measure computation time in `R`. We recommend using the `microbenchmark` package available with
 ```{r, eval =F}
 install.packages("microbenchmark")
 ```
@@ -278,7 +286,7 @@ Before implementing a given code chunk that constitutes a bottleneck in `C++`, o
 
 General advice are for example to declare type and length of data structure explicitly rather then to append to existing data structure as well as to use efficiently implemented `R` functions when possible. 
 
-Hence, there exists different way to script a function in `R`, and depending on the functions and objects defined, different implementation will have different run-time.
+Hence, there exist different ways to program a function in `R`, and depending on the functions and objects defined, different implementation will have different run-time.
 
 &nbsp;
 
@@ -484,11 +492,11 @@ RETURN_TYPE FUNCTION_NAME(ARGUMENT_TYPE ARGUMENT){
 
 
 
-| Operation| R |Rcpp|
+| Operation| `R` |`Rcpp`|
 |:---:|:---:|:---:|
 | Vector constructor | `x = vector(mode = "numeric", length = 5)` | `NumericVector x(5);` |
 | Vector indexing | `x[1]` | `x(0);` |
-| Matrix constructor |`X = matrix(0,10,10)` |`NumericMatrix X(5, 5);`|
+| Matrix constructor |`X = matrix(0,5,5)` |`NumericMatrix X(5, 5);`|
 | Matrix indexing | `X[1,1]` | `X(0,0);` |
 | DataFrame constructor |`df = data.frame("V1" = v1, "V2"= v2)`| `DataFrame df = DataFrame::create( Named("V1") = v1 , _["V2"] = v2 );`|
 
@@ -635,7 +643,7 @@ int fibo_cpp(int n) {
 ---
 # A note on `for` loop
 
-`R` is know to be particularly inefficient with iterative loop such as `for` and `while` loop.
+`R` is known to be particularly inefficient with iterative loop such as `for` and `while` loops.
 When you have such iterative control structure in your code and want to increase performance, it is a good strategy to rewrite these code chunks in `Rcpp`.
 
 `for` loops in `C++` have a slightly different syntax than in `R`.
@@ -644,7 +652,7 @@ When you have such iterative control structure in your code and want to increase
 ```{r, eval =F}
 print_i_r = function(i){
   for(j in 1:i){ #<<
-  print(j)
+    print(j)
   }
 }
 print_i_r(3)
@@ -694,7 +702,7 @@ Similarly, one can load an external `C++` library by specifying in the header of
 #include <name_of_the_external_library>
 ```
 
-The equivalent of [base](https://stat.ethz.ch/R-manual/R-devel/library/base/html/base-package.html) `R` in `C++` is the `C++` Standard Library (`std`). `std` is a collection of classes and functions written in the core language. One can use functions from `std` in a `Rcpp` script by specifying the prefix `std::` before a function.
+An analogue of [base](https://stat.ethz.ch/R-manual/R-devel/library/base/html/base-package.html) `R` in `C++` is the `C++` Standard Library (`std`). `std` is a collection of classes and functions written in the core language. One can use functions from `std` in a `Rcpp` script by specifying the prefix `std::` before a function.
 
 
 
@@ -708,7 +716,7 @@ The equivalent of [base](https://stat.ethz.ch/R-manual/R-devel/library/base/html
 install.packages("RcppArmadillo") # install RcppArmadillo
 ```
 
-One can source a `.cpp` file that make use of `Armadillo` by specifying the following arguments in the header of the `.cpp` file:
+One can source a `.cpp` file that makes use of `Armadillo` by specifying the following arguments in the header of the `.cpp` file:
 
 ```{Rcpp, eval =F}
 #include <RcppArmadillo.h>  #<<
@@ -745,7 +753,7 @@ using namespace Rcpp;  #<<
 ---
 # Case study: The Haar Wavelet Variance 
 
-We here consider a real case application of rewriting `R` code in `C++` code.
+We consider a real case application of rewriting `R` code in `C++` code.
 For this example, we will consider a naive implementation of an estimator of the **Haar Wavelet Variance**.
 
 This statistical quantity is used in the context of inference of time series models. 
@@ -777,7 +785,7 @@ A simple algorithm to compute an estimator of the Wavelet Variance provide an in
 
 Let $\{Y_t; t \in \mathbb{Z}  \}$ be a univariate time series.
 
-Define $J = log_2(T)-1$ and scale $\tau_j = 2^j$ where $j \in \{1, \ldots, J\}$ 
+Set $J = log_2(T)-1$ and scale $\tau_j = 2^j$ where $j \in \{1, \ldots, J\}$ 
 
 For each scale $\tau_j$:
 
