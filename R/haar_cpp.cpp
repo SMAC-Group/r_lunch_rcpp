@@ -2,6 +2,7 @@
 // [[Rcpp::depends(RcppArmadillo)]]
 using namespace Rcpp;
 
+
 // This is a simple example of exporting a C++ function to R. You can
 // source this function into an R session using the Rcpp::sourceCpp 
 // function (or via the Source button on the editor toolbar). Learn
@@ -59,12 +60,23 @@ arma::colvec wvar_cpp(arma::vec Xt) {
 }
 
 
+
+
+
+
+
 // You can include R code blocks in C++ files processed with sourceCpp
 // (useful for testing and development). The R code will be automatically 
 // run after the compilation.
 //
 
 /*** R
-
-
+# set.seed(12345)
+# library(simts)
+# library(microbenchmark)
+# size = 10e2
+# Xt = gen_gts(n=size, model = WN(1))
+# wvar_cpp_openmpi(Xt, ncores = 4)
+# microbenchmark(wvar_cpp(Xt), 
+#           wvar_cpp_openmpi(Xt, ncores = 4))
 */

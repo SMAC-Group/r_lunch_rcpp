@@ -141,6 +141,21 @@ source:
 
 ---
 
+# Why using `C++` in `R`
+
+
+`C++` is a general-purpose programming language developed initially as an extension of the `C` language that included classes for object-oriented programming. As opposed to `R` or `python`, `C++` is a compiled language and hence benefit from a fast execution time.
+
+**Examples of ideal situations where to use `Rcpp` are:**
+
+- Loop operations
+- Recursive functions
+- Operations on huge datasets
+- Complex algorithms that need advanced data structures
+
+
+---
+
 # Objectives
 ```{r, load_refs, echo=FALSE, cache=FALSE, warning = F, message=F}
 library(RefManageR)
@@ -170,38 +185,25 @@ library(RcppArmadillo)
 knitr::include_graphics("assets/thelogo.png")
 ```
 
----
+<!-- --- -->
 
-# Why using `C++` in `R`: Motivations
+<!-- # Why using `C++` in `R`: Motivations -->
 
-When working with complex computations in `R`, it is often the case that `R` is simply not fast enough. 
+<!-- When working with complex computations in `R`, it is often the case that `R` is simply not fast enough.  -->
 
-<div align="center">
-<iframe src="https://giphy.com/embed/pFZTlrO0MV6LoWSDXd" width="410" height="208" frameBorder="0" class="giphy-embed" allowFullScreen></iframe><p><a href="https://giphy.com/gifs/waiting-mr-bean-checking-time-pFZTlrO0MV6LoWSDXd">via GIPHY</a></p>
- </div> 
-<!-- .center[![](assets/wait.gif)] -->
+<!-- <div align="center"> -->
+<!-- <iframe src="https://giphy.com/embed/pFZTlrO0MV6LoWSDXd" width="410" height="208" frameBorder="0" class="giphy-embed" allowFullScreen></iframe><p><a href="https://giphy.com/gifs/waiting-mr-bean-checking-time-pFZTlrO0MV6LoWSDXd">via GIPHY</a></p> -->
+<!--  </div>  -->
+<!-- <!-- .center[![](assets/wait.gif)] --> 
 
-&nbsp;
-
-
-In such cases, it is interesting to identify where are the bottleneck in a given code and rewrite these chunks of code in a lower-level language to benefit from faster execution time.
-
----
-
-# Why using `C++` in `R`: Motivations
+<!-- &nbsp; -->
 
 
-`C++` is a general-purpose programming language developed initially as an extension of the `C` language that included classes for object-oriented programming. As opposed to `R` or `python`, `C++` is a compiled language and hence benefit from a fast execution time.
-
-**Examples of ideal situations where to use `Rcpp` are:**
-
-- Loop operations
-- Recursive functions
-- Operations on huge datasets
-- Complex algorithms that need advanced data structures
+<!-- In such cases, it is interesting to identify where are the bottleneck in a given code and rewrite these chunks of code in a lower-level language to benefit from faster execution time. -->
 
 
 ---
+
 # Using `C++` in `R` 
 
 `Rcpp` is an `R` package that makes it very easy to connect `C++` code to `R`. Written by Dirk Eddelbuettel and Romain Francois, `Rcpp` let you compile and use `C++` functions directly in `R`.
@@ -783,7 +785,7 @@ A simple algorithm to compute an estimator of the Wavelet Variance provide an in
 
 **Algorithm**
 
-Let $\{Y_t; t \in \mathbb{Z}  \}$ be a univariate time series.
+Let $Y_t,  t \in \{1, \ldots, T\}$ be a time series.
 
 Set $J = log_2(T)-1$ and scale $\tau_j = 2^j$ where $j \in \{1, \ldots, J\}$ 
 
@@ -959,18 +961,20 @@ load("mat_mean_perf.rda")
 # t_col("darkblue")
 # t_col("darkorange", percent = .8)
 
+mat_mean_perf_2 = mat_mean_perf /1e6
 par(mar=c(5,7,1,1))
-plot(x = 10^seq(5), y = mat_mean_perf[,2], 
-     log="x", type = "b", xlab = "Sample size", ylim =c(0, 2*10e7),
+plot(x = 10^seq(5), y = mat_mean_perf_2[,2], 
+     log="x", type = "b", xlab = "Sample size", ylim =c(0, max(mat_mean_perf_2)),
      cex.lab = 1.2, las = 1, 
      cex.main = 1.5,cex.axis = 1.1,
-     col = "darkblue", pch = 16, ylab ="")
-mtext(side = 2, text = "Mean execution time (microseconds)", line = 5.6, cex= 1.1)
+     col = "darkblue", pch = 16, yaxt ="n",ylab="")
+mtext(side = 2, text = "Mean execution time (seconds)", line = 5.6, cex= 1.1)
+axis(side=2, las = 2, at = )
 grid(col="grey80", lty=1)
-polygon(x = c(10^seq(5), rev(10^seq(5))), y = c(mat_mean_perf[,3], rev(mat_mean_perf[,5])), col = "#FF8C0019" , border = NA)
-polygon(x = c(10^seq(5), rev(10^seq(5))), y = c(mat_mean_perf[,4], rev(mat_mean_perf[,6])), col = "#00008B19", border = NA)
-lines(x = 10^seq(5), y = mat_mean_perf[,1], type ="b",  col = "darkorange", pch = 16)
-lines(x = 10^seq(5), y = mat_mean_perf[,2], type ="b",  col = "darkblue", pch = 16)
+polygon(x = c(10^seq(5), rev(10^seq(5))), y = c(mat_mean_perf_2[,3], rev(mat_mean_perf_2[,5])), col = "#FF8C0019" , border = NA)
+polygon(x = c(10^seq(5), rev(10^seq(5))), y = c(mat_mean_perf_2[,4], rev(mat_mean_perf_2[,6])), col = "#00008B19", border = NA)
+lines(x = 10^seq(5), y = mat_mean_perf_2[,1], type ="b",  col = "darkorange", pch = 16)
+lines(x = 10^seq(5), y = mat_mean_perf_2[,2], type ="b",  col = "darkblue", pch = 16)
 legend("topleft",col = c("darkorange", "darkblue"), legend= c("R", "CPP"), lwd=1, pch = 16, bty ="n", cex = 1.5)
 
 
@@ -982,6 +986,36 @@ legend("topleft",col = c("darkorange", "darkblue"), legend= c("R", "CPP"), lwd=1
 ---
 
 # Parallelisation with openMPI
+
+
+`openMPI` is an API that enables parallelization of `C++` code. One can specify the dependency in the `.cpp` header file with: 
+
+```{Rcpp, eval =F}
+# include <RcppArmadillo.h>
+// [[Rcpp::depends(RcppArmadillo)]]
+# include <omp.h> #<<
+using namespace Rcpp ;
+
+```
+
+In is then possible to parallelize an independent `for` loop with:
+
+```{Rcpp, eval =F}
+// [[Rcpp::export()]]
+void omp2 (int n_threads = 1) { #<<
+  omp_set_num_threads(n_threads) ; #<<
+  # pragma omp parallel for #<<
+  for (int i = 0 ; i < 10 ; i++) {
+    Rcout << " " << i << " " ;
+  }
+}
+
+```
+
+
+
+---
+
 
 
 
