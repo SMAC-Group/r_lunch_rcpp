@@ -35,6 +35,19 @@ https://github.com/garthtarr/sydney_xaringan
 also, check about [infinite moon reader](https://yihui.org/en/2019/02/ultimate-inf-mr/) for development
 -->
 
+```{r, load_refs, echo=FALSE, cache=FALSE, warning = F, message=F}
+library(RefManageR)
+BibOptions(check.entries = FALSE, 
+           bib.style = "authoryear", 
+           cite.style = 'authoryear', 
+           style = "markdown",
+           hyperlink = FALSE, 
+           dashed = FALSE)
+myBib <- ReadBib("assets/example.bib", check = FALSE)
+library(Rcpp)
+library(RcppArmadillo)
+```
+
 # Motivation
 ## State 1: programming with `R` is easy...
 
@@ -101,11 +114,13 @@ knitr::include_graphics("assets/speed_comparison_2.png")
 ---
 # Compiled program
 
+- Program is translated into native machine instruction (compilation)
+
 ```{r echo=FALSE, fig.align='center', out.width=750, out.height=111}
 knitr::include_graphics("assets/compiled.png")
 ```
 
-- Program is translated into native machine instruction (compilation)
+&nbsp;
 
 &nbsp;
 
@@ -118,11 +133,13 @@ knitr::include_graphics("assets/compiled_pl.png")
 ---
 # Interpreted program
 
+- Program is translated into another code (bytecode). An interpreter then performs the required actions.
+
 ```{r echo=FALSE, fig.align='center', out.width=750, out.height=111}
 knitr::include_graphics("assets/interpreted.png")
 ```
 
-- Program is translated into another code (bytecode). An interpreter then performs the required actions.
+&nbsp;
 
 &nbsp;
 
@@ -133,16 +150,66 @@ knitr::include_graphics("assets/interpreted_pl.png")
 ```
 
 ---
-# `R` interfaces to subroutine in other languages
-- `R` is basically written in `C` and `Fortran` (`.Call()` interface to `C`)
-- 
+# `R` interfaces to other languages
+`R` is basically written in `C` and `Fortran`. Available interfaces to other languages comprise:
+- `C` via `.Call()` function
+- `Fortran` via `.Fortran()` function
+- `C++` via the `Rcpp` package
+- `Python` via `rPython`, `rJython` or `XRPython`
+- `Julia` via `XRJulia`
+- `JavaScript` via `V8`
+- `Excel`, `JSON`, `SQL`, `Perl`, ...
 
-source: 
+
+See `r Citep(myBib,"chambers2017extending")` for a comprehensive discussion on interfacing `R`.
+
+---
+# Example: linear regression
+How does `R` fit a linear regression? 
+
+```{r, eval=F}
+fit <- lm(y ~ x)
+```
+
+first layer: `R` function `lm`
+```{r, eval=FALSE}
+lm <- function(formula, ...){
+  ...
+  y <- model.response(mf, "numeric")
+  ...
+  x <- model.matrix(mt, mf, contrasts)
+  ...
+  lm.fit(x, y, ...) #<<
+  ...
+}
+```
+
+---
+# Example: linear regression
+How does `R` fit a linear regression?
+
+second layer: `R` function `lm.fit`
+```{r, eval=FALSE}
+lm.fit <- function(x, y, ...){
+  ...
+  .Call(C_Cdqrls, x, y, tol, FALSE) #<<
+  ...
+}
+```
+
+third layer: `C` function `Cdqrls`
+```{r, eval=FALSE}
+SEXP Cdqrls(SEXP x, SEXP y, SEXP tol, SEXP chk)
+```
+
+`SEXP` is the datatype for a generic `R` object
+
+Source: excellent post [A Deep Dive Into How R Fits a Linear Model](https://madrury.github.io/jekyll/update/statistics/2016/07/20/lm-in-R.html), `Cdqrls` [source code](https://github.com/wch/r-source/blob/trunk/src/library/stats/src/lm.c)
+
 
 ---
 
 # Why using `C++` in `R`
-
 
 `C++` is a general-purpose programming language developed initially as an extension of the `C` language that included classes for object-oriented programming. As opposed to `R` or `python`, `C++` is a compiled language and hence benefit from a fast execution time.
 
@@ -153,22 +220,29 @@ source:
 - Operations on huge datasets
 - Complex algorithms that need advanced data structures
 
+---
+# Extending `R` with `C++` via `Rcpp`
+`Rcpp` is a popular package. 
+
+```{r echo=FALSE, fig.align='center', out.width=500, out.height=374}
+knitr::include_graphics("assets/popular_packages.png")
+```
+
+source: [KDnuggets](https://www.kdnuggets.com/2015/06/top-20-r-packages.html)
+
+---
+# Extending `R` with `C++` via `Rcpp`
+You do not need to worry about `SEXP` and `.Call()`
+
+<blockquote>
+`Rcpp` can offer what we think is an easier to use and possibly even more consistent interface that is closer to the way `R` programmers work with their data.
+.right[Dirk Eddelbuettel-- <cite>Seamless `R` and `C++`
+Integration with `Rcpp`</cite>]
+</blockquote>
 
 ---
 
 # Objectives
-```{r, load_refs, echo=FALSE, cache=FALSE, warning = F, message=F}
-library(RefManageR)
-BibOptions(check.entries = FALSE, 
-           bib.style = "authoryear", 
-           cite.style = 'authoryear', 
-           style = "markdown",
-           hyperlink = FALSE, 
-           dashed = FALSE)
-myBib <- ReadBib("assets/example.bib", check = FALSE)
-library(Rcpp)
-library(RcppArmadillo)
-```
 
 - Overview of how to measure performance in `R` using profiling and timing tools.
 
@@ -276,7 +350,7 @@ For a comprehensive discussion on the topic, we recommend [Efficient R programmi
 
 ---
 # Optimizing `R` code: Illustration
-TO illustrate this notion, let us consider a simple example where we want to construct a vector of length $n$ with the sequence of $\mathbb{N}$ from 1 to $n$.
+TO illustrate this notion, let us consider a simple example where we want to construct a vector of length $n$ with the sequence of integers from 1 to $n$.
 
 <!-- Let us consider a simple example where we consider applying the function $$f: \mathbb{R}^p \rightarrow \mathbb{R} = n^{-1}\sum_{i=1}^n X_i$$ to each element of a list. -->
 
@@ -360,8 +434,7 @@ sudo apt-get install r-base r-base-dev
 # Introduction to `C++` and `Rcpp`
 
 <blockquote>
-
-Rcpp is a package that enables you to implement R functions in C++. It is easy to use even without deep knowledge of C++, because it is implemented so as to write your C++ code in a style similar to R. And Rcpp does not sacrifice execution speed for the ease of use, anyone can get high performance outcome.
+`Rcpp` is a package that enables you to implement `R` functions in `C`++. It is easy to use even without deep knowledge of `C`++, because it is implemented so as to write your `C`++ code in a style similar to `R`. And `Rcpp` does not sacrifice execution speed for the ease of use, anyone can get high performance outcome.
 .right[-- <cite>Rcpp for everyone</cite>]
 </blockquote>
 
@@ -510,7 +583,7 @@ RETURN_TYPE FUNCTION_NAME(ARGUMENT_TYPE ARGUMENT){
 ---
 # `Rcpp sugar`
 <blockquote>
-Put succinctly, the motivation of Rcpp sugar is to bring a subset of the high-level R syntax in C++.
+Put succinctly, the motivation of `Rcpp` sugar is to bring a subset of the high-level `R` syntax in `C`++.
 .right[-- <cite>Dirk Eddelbuettel</cite>]
 </blockquote>
 
@@ -998,7 +1071,7 @@ using namespace Rcpp ;
 
 ```
 
-In is then possible to parallelize an independent `for` loop with:
+It is then possible to parallelize an independent `for` loop with:
 
 ```{Rcpp, eval =F}
 // [[Rcpp::export()]]
@@ -1030,6 +1103,8 @@ void omp2 (int n_threads = 1) { #<<
 - [Seamless R and C++ Integration with Rcpp](https://www.springer.com/gp/book/9781461468677)
 
 - [Efficient R programming](https://csgillespie.github.io/efficientR/)
+
+- [Extending R](https://www.routledge.com/Extending-R/Chambers/p/book/9781498775717)
 
 - [Armadillo documentation](http://arma.sourceforge.net/docs.html)
 ---
