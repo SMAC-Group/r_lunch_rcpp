@@ -211,7 +211,7 @@ Source: excellent post [A Deep Dive Into How R Fits a Linear Model](https://madr
 
 # Why using `C++` in `R`
 
-`C++` is a general-purpose programming language developed initially as an extension of the `C` language that included classes for object-oriented programming. As opposed to `R` or `python`, `C++` is a compiled language and hence benefit from a fast execution time.
+`C++` is a general-purpose programming language developed initially as an extension of the `C` language that included classes for object-oriented programming. As opposed to `R` or `python`, `C++` is a compiled language and benefit from a fast execution time.
 
 **Examples of ideal situations where to use `Rcpp` are:**
 
@@ -803,7 +803,6 @@ using namespace Rcpp;  #<<
 `[[Rcpp::depends(RcppArmadillo)]]` ensures that `sourceCpp()` can compile and load the `RcppArmadillo` headers.
 
 
-
 ---
 # `Armadillo` basic syntax
 
@@ -1060,22 +1059,20 @@ legend("topleft",col = c("darkorange", "darkblue"), legend= c("R", "CPP"), lwd=1
 
 # Parallelisation with openMPI
 
-
 `openMPI` is an API that enables parallelization of `C++` code. One can specify the dependency in the `.cpp` header file with: 
 
 ```{Rcpp, eval =F}
 # include <RcppArmadillo.h>
 // [[Rcpp::depends(RcppArmadillo)]]
 # include <omp.h> #<<
-using namespace Rcpp ;
-
+// [[Rcpp::plugins(openmp)]] #<<
 ```
 
 It is then possible to parallelize an independent `for` loop with:
 
 ```{Rcpp, eval =F}
 // [[Rcpp::export()]]
-void omp2 (int n_threads = 1) { #<<
+void omp2 (int n_threads = 1) { 
   omp_set_num_threads(n_threads) ; #<<
   # pragma omp parallel for #<<
   for (int i = 0 ; i < 10 ; i++) {
@@ -1085,31 +1082,20 @@ void omp2 (int n_threads = 1) { #<<
 
 ```
 
-
-
----
-# Case study: The Haar Wavelet Variance 
-### Performance gain with parallelization
-
-no gain in performance, bug when running
+To go further, check the post [Parallelization in rcpp via OpenMP](https://wbnicholson.wordpress.com/2014/07/10/parallelization-in-rcpp-via-openmp/)
 
 ---
 # Take aways
 
 - `R` is an interpreted language that allows fast development with a high-level syntax, but suffer from a slow run-time compared to lower-level languages. Many core `R` functions are already implemented in `Fortran` or `C`.
 
-- There exists various ways to write an algorithm in `R`, and depending on the syntax, the object created and the functions called, different approach will lead to different execution time.
+- There exists various ways to write an algorithm in `R`, and depending on the syntax, the object created and the functions called, different approach will lead to different performances.
 
 - When working on improving the run time of an `R` code, one should identify the bottlenecks and measure the execution of the implementation using profiling and benchmark tools.
 
-- `Rcpp` is an interface that enables you to write, compile and execute `C++` code inside of an `R` environment with a lighter syntax than classical `C++`. `Rcpp` provides already implemented classes and `R`-like functions for an easier development.
+- `Rcpp` is a package that allows to interface `R` with `C++`. `Rcpp` provides already implemented classes and `R`-like functions for an easier development.
 
 - There exists various external `C++` libraries that can be loaded and used in combination with `Rcpp`, such as for example linear algebra and scientific computing libraries such as `Armadillo` and `Eigen`. 
-
-
-
-
-
 
 ---
 
