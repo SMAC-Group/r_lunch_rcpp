@@ -1143,24 +1143,24 @@ class: sydney-blue, center, middle
 ### Any questions?
 
 .pull-down[
-<a href="mailto:garth.tarr@sydney.edu.au">
+<a href="mailto:lionel.voirol@unige.ch">
 .white[`r icons::fontawesome("paper-plane")` Lionel.Voirol@unige.ch]
 </a>
 
 
 
-<a href="http://github.com/garthtarr">
+<a href="http://github.com/lionelvoirol">
 .white[`r icons::fontawesome("github")` @lionelvoirol]
 </a>
 
 
-<a href="mailto:garth.tarr@sydney.edu.au">
+<a href="mailto:samuel.orso@unige.ch">
 .white[`r icons::fontawesome("paper-plane")` Samuel.Orso@unige.ch]
 </a>
 
 
 
-<a href="http://github.com/garthtarr">
+<a href="http://github.com/samorso">
 .white[`r icons::fontawesome("github")` @samorso]
 </a>
 
