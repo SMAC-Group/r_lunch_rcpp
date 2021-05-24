@@ -863,7 +863,7 @@ Set $J = log_2(T)-1$ and scale $\tau_j = 2^j$ where $j \in \{1, \ldots, J\}$
 
 For each scale $\tau_j$:
 
-$\hspace{.8cm}$ Compute the Wavelet coefficients defined as $\bar{W}_{j, t}=\sum_{l=0}^{L_{j}-1} \tilde{h}_{j, l} y_{t-l}, t \in \mathbb{Z}$ where $\tilde{h}_{j,l}$ is the Haar wavelet $\hspace{.8cm}$ filter for scale $\tau_j = 2^{j}$ and $L_j = T-2^j+1$
+$\hspace{.8cm}$ Compute the Wavelet coefficients defined as $\bar{W}_{j, t}=\sum_{l=0}^{L_{j}-1} \tilde{h}_{j, l} y_{t-l}, t \in \mathbb{Z}$ where $\tilde{h}_{j,l}$ is the Haar wavelet $\hspace{.8cm}$  filter for scale $\tau_j = 2^{j}$ and $L_j = T-2^j+1$
 
 $\hspace{.8cm}$ We define the estimated Wavelet Variance for scale $j$, noted $\hat{\nu}^2(\tau_j)$ as $\text{var}(\bar{W}_{j, t})$
 
