@@ -848,6 +848,14 @@ See `r Citep(myBib,"guerrier2013wavelet")` for a comprehensive discussion on GMW
 
 
 ---
+# Case study: The Haar Wavelet Variance 
+<div align = "center">
+<img src="assets/wvar_fit_img.png" width="90%"/>
+</div>
+
+
+
+---
 
 # Case study: The Haar Wavelet Variance
 
@@ -973,6 +981,7 @@ arma::colvec wvar_cpp(arma::vec Xt) {
   int tsl = Xt.n_elem;
   // define J
   int J = floor(log(tsl) / log(2));
+  //create list to store elements
   List haar_coef_list = List::create();
   IntegerVector all_j = seq_len( J );
   for(int i_j = 1; i_j <= J; i_j++) {

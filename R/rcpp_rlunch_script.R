@@ -41,9 +41,16 @@ source(file = "R/haar_r.R")
 
 # test equality
 #generate ts
+library(simts)
 set.seed(12345)
-Xt = gen_gts(n=10^3, model = WN(1))
-
+Xt = gen_gts(n=10^5, model = WN(1))
+wvar_obj = wv::wvar(Xt)
+par(mfrow=c(1,2))
+plot(wvar_obj)
+mod = gmwm( WN(), Xt)
+plot(mod)
+library(gmwm)
+devtools::install_github("https://github.com/SMAC-Group/gmwm")
 # compute wvar
 wvar_r_implementation = wvar_r(Xt)
 wvar_cpp_implementation = wvar_cpp(Xt)
