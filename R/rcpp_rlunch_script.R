@@ -11,7 +11,10 @@ require(magrittr)
 library(microbenchmark)
 library(Rcpp)
 library(RcppArmadillo)
+library(simts)
+# library(gmwm)
 
+library(ggpubr)
 ################# measuring performance in R
 
 
@@ -41,15 +44,36 @@ source(file = "R/haar_r.R")
 
 # test equality
 #generate ts
-library(simts)
 set.seed(12345)
 Xt = gen_gts(n=10^5, model = WN(1))
 wvar_obj = wv::wvar(Xt)
-par(mfrow=c(1,2))
+mymat = matrix(c(1,1,1,1, 2,2,3,3,2,2,3,3), 3, 4, byrow = TRUE)
+layout(mymat, height = c(1,2))
+par(mar=c(1.5,2.5,1,1))
+
+plot(Xt[1:1000], ylab = "", xlab="", xaxt="n", type ="l")
+par(mar=c(5.5,2.5,1,1))
 plot(wvar_obj)
-mod = gmwm( WN(), Xt)
+mod = simts::gmwm( WN(), Xt)
 plot(mod)
-library(gmwm)
+
+
+# layout(matrix())
+df = data.frame(y = Xt[1:1000], x = seq(length(Xt[1:1000])))
+p0 = ggplot(df, aes(y=y, x= x))+
+  geom_line() + xlab("") + theme_minimal() + 
+  ylab("Y") + 
+  theme(axis.text.x = element_blank() )
+
+ggpubr::ggarrange(p0,                                                 # First row with scatter plot
+          ggarrange(p1, p2, ncol = 2, labels = c("", "")), # Second row with box and dot plots
+          nrow = 2, 
+          labels = ""                                        # Labels of the scatter plot
+) 
+
+
+
+
 devtools::install_github("https://github.com/SMAC-Group/gmwm")
 # compute wvar
 wvar_r_implementation = wvar_r(Xt)

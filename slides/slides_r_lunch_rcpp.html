@@ -316,7 +316,7 @@ microbenchmark::microbenchmark(f1)
 ```
 ## Unit: nanoseconds
 ##  expr min lq  mean median uq  max neval
-##    f1  34 36 51.46     37 38 1361   100
+##    f1  34 35 50.62     36 37 1411   100
 ```
 
 These results summarize how long each query took: the minimum (`min`), lower and upper quartiles (`lq` and `uq`, respectively) and the mean, median and maximum, for each of the number of evaluations (`neval`, with the default value of 100 used in this case). `cld` reports the relative rank of each row in the form of 'compact letter display'.
@@ -874,7 +874,7 @@ See (Guerrier, Skaloud, Stebler, et al., 2013) for a comprehensive discussion on
 ---
 # Case study: The Haar Wavelet Variance 
 &lt;div align = "center"&gt;
-&lt;img src="assets/wvar_fit_img.png" width="90%"/&gt;
+&lt;img src="assets/wvar_fit_img.png" width="85%"/&gt;
 &lt;/div&gt;
 
 
@@ -1125,16 +1125,17 @@ To go further, check the post [Parallelization in rcpp via OpenMP](https://wbnic
 # References
 Chambers, J. M. (2017). _Extending R_. CRC Press.
 
-Guerrier, S., J. Skaloud, Y. Stebler, et al. (2013). "Wavelet-variance-based
-estimation for composite stochastic processes". In: _Journal of the American
-Statistical Association_ 108.503, pp. 1021-1030.
+Guerrier, S., J. Skaloud, Y. Stebler, et al. (2013).
+"Wavelet-variance-based estimation for composite stochastic
+processes". In: _Journal of the American Statistical Association_
+108.503, pp. 1021-1030.
 
-Percival, D. P. (1995). "On estimation of the wavelet variance". In:
-_Biometrika_ 82.3, pp. 619-631.
+Percival, D. P. (1995). "On estimation of the wavelet variance".
+In: _Biometrika_ 82.3, pp. 619-631.
 
-Schimmack, M., S. Nguyen, and P. Mercorelli (2016). "Anatomy of haar wavelet
-filter and its implementation for signal processing". In: _IFAC-PapersOnLine_
-49.6, pp. 99-104.
+Schimmack, M., S. Nguyen, and P. Mercorelli (2016). "Anatomy of
+haar wavelet filter and its implementation for signal processing".
+In: _IFAC-PapersOnLine_ 49.6, pp. 99-104.
 
 
 ---

@@ -850,7 +850,7 @@ See `r Citep(myBib,"guerrier2013wavelet")` for a comprehensive discussion on GMW
 ---
 # Case study: The Haar Wavelet Variance 
 <div align = "center">
-<img src="assets/wvar_fit_img.png" width="90%"/>
+<img src="assets/wvar_fit_img.png" width="85%"/>
 </div>
 
 
