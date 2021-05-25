@@ -155,7 +155,7 @@ knitr::include_graphics("assets/interpreted_pl.png")
 - `C` via `.Call()` function
 - `Fortran` via `.Fortran()` function
 - `C++` via the `Rcpp` package
-- `Python` via `rPython`, `rJython` or `XRPython`
+- `Python` via `reticulate`, `rPython`, `rJython` or `XRPython`
 - `Julia` via `XRJulia`
 - `JavaScript` via `V8`
 - `Excel`, `JSON`, `SQL`, `Perl`, ...
