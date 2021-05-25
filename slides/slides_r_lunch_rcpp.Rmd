@@ -2,7 +2,7 @@
 title: "R-lunch: Extending R with C++"
 subtitle: "An introduction to high performance computing with Rcpp and Armadillo"
 author: "Lionel Voirol & Samuel Orso"
-date: "24 May 2021"
+date: "25 May 2021"
 output:
   xaringan::moon_reader:
     css: ["default", "assets/sydney-fonts.css", "assets/sydney.css"]
