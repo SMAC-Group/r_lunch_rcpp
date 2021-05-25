@@ -350,7 +350,7 @@ For a comprehensive discussion on the topic, we recommend [Efficient R programmi
 
 ---
 # Optimizing `R` code: Illustration
-TO illustrate this notion, let us consider a simple example where we want to construct a vector of length $n$ with the sequence of integers from 1 to $n$.
+To illustrate this notion, let us consider a simple example where we want to construct a vector of length $n$ with the sequence of integers from 1 to $n$.
 
 <!-- Let us consider a simple example where we consider applying the function $$f: \mathbb{R}^p \rightarrow \mathbb{R} = n^{-1}\sum_{i=1}^n X_i$$ to each element of a list. -->
 
