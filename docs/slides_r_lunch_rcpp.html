@@ -1,0 +1,1328 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>R-lunch: Extending R with C++</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Lionel Voirol &amp; Samuel Orso" />
+    <meta name="date" content="2021-05-25" />
+    <script src="slides_r_lunch_rcpp_files/header-attrs-2.25/header-attrs.js"></script>
+    <link href="slides_r_lunch_rcpp_files/remark-css-0.0.1/default.css" rel="stylesheet" />
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+        TeX: { equationNumbers: { autoNumber: "AMS" } },
+      });
+    </script>
+    <style>
+    .mjx-mrow a {
+      color: black;
+      pointer-events: none;
+      cursor: default;
+    }
+    </style>
+    <link rel="stylesheet" href="assets/sydney-fonts.css" type="text/css" />
+    <link rel="stylesheet" href="assets/sydney.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+.title[
+# R-lunch: Extending R with C++
+]
+.subtitle[
+## An introduction to high performance computing with Rcpp and Armadillo
+]
+.author[
+### Lionel Voirol &amp; Samuel Orso
+]
+.date[
+### 25 May 2021
+]
+
+---
+
+
+&lt;!-- # Xaringan support 
+
+@Sam for an introduction to xaringan, see
+
+
+https://spcanelon.github.io/xaringan-basics-and-beyond/
+
+and
+
+https://github.com/garthtarr/sydney_xaringan
+
+also, check about [infinite moon reader](https://yihui.org/en/2019/02/ultimate-inf-mr/) for development
+--&gt;
+
+
+
+# Motivation
+## State 1: programming with `R` is easy...
+
+&lt;img src="assets/happy_programmer.jpg" width="612" height="408" style="display: block; margin: auto;" /&gt;
+
+---
+
+# Motivation
+## State 2: ... but the run-time is so slow
+
+&lt;img src="assets/sad_programmer.jpg" width="612" height="408" style="display: block; margin: auto;" /&gt;
+
+---
+
+# It is not a piece of
+&lt;img src="assets/pi-pie.png" style="height:100px; width:150px; position:absolute; top:7%; left:34.5%;"/&gt;
+
+Suppose your problem is to find `\(\pi\)` using [Leibniz formula for `\(\pi\)`](https://en.wikipedia.org/wiki/Leibniz_formula_for_%CF%80). Leibniz's idea is to use the relation `$$\frac{\pi}{4}=\arctan(1)$$`
+and the fact that `$$\arctan(1) = \sum_{k=1}^\infty\frac{(-1)^k}{2k+1}$$`
+
+An algorithm to solve this problem is
+
+```r
+choose n and set
+x &lt;- 1.0
+pi &lt;- 1.0
+for k from 1 to n
+  x &lt;- -x
+  pi &lt;- pi + x / (2.0 * k + 1.0)
+return pi &lt;- 4.0 * pi
+```
+
+---
+
+# It is not a piece of
+&lt;img src="assets/pi-pie.png" style="height:100px; width:150px; position:absolute; top:7%; left:34.5%;"/&gt;
+
+For this particular task, the performances of several programming languages are compared.
+
+&lt;img src="assets/logos.png" width="750" height="450" style="display: block; margin: auto;" /&gt;
+---
+# It is not a piece of
+&lt;img src="assets/pi-pie.png" style="height:100px; width:150px; position:absolute; top:7%; left:34.5%;"/&gt;
+
+&lt;img src="assets/speed_comparison.png" width="750" height="450" style="display: block; margin: auto;" /&gt;
+(Source: [github.com/niklas-heer/speed-comparison](https://github.com/niklas-heer/speed-comparison))
+
+---
+# It is not a piece of
+&lt;img src="assets/pi-pie.png" style="height:100px; width:150px; position:absolute; top:7%; left:34.5%;"/&gt;
+
+&lt;img src="assets/speed_comparison_2.png" width="750" height="450" style="display: block; margin: auto;" /&gt;
+(Source: [github.com/niklas-heer/speed-comparison](https://github.com/niklas-heer/speed-comparison))
+
+---
+# Compiled program
+
+- Program is translated into native machine instruction (compilation)
+
+&lt;img src="assets/compiled.png" width="750" height="111" style="display: block; margin: auto;" /&gt;
+
+&amp;nbsp;
+
+&amp;nbsp;
+
+&amp;nbsp;
+
+&lt;img src="assets/compiled_pl.png" width="750" height="117" style="display: block; margin: auto;" /&gt;
+
+---
+# Interpreted program
+
+- Program is translated into another code (bytecode). An interpreter then performs the required actions.
+
+&lt;img src="assets/interpreted.png" width="750" height="111" style="display: block; margin: auto;" /&gt;
+
+&amp;nbsp;
+
+&amp;nbsp;
+
+&amp;nbsp;
+
+&lt;img src="assets/interpreted_pl.png" width="750" height="117" style="display: block; margin: auto;" /&gt;
+
+---
+# `R` interfaces to other languages
+`R` is basically written in `C` and `Fortran`. Available interfaces to other languages comprise:
+- `C` via `.Call()` function
+- `Fortran` via `.Fortran()` function
+- `C++` via the `Rcpp` package
+- `Python` via `reticulate`, `rPython`, `rJython` or `XRPython`
+- `Julia` via `XRJulia`
+- `JavaScript` via `V8`
+- `Excel`, `JSON`, `SQL`, `Perl`, ...
+
+
+See (Chambers, 2017) for a comprehensive discussion on interfacing `R`.
+
+---
+# Example: linear regression
+How does `R` fit a linear regression? 
+
+
+```r
+fit &lt;- lm(y ~ x)
+```
+
+first layer: `R` function `lm`
+
+```r
+lm &lt;- function(formula, ...){
+  ...
+  y &lt;- model.response(mf, "numeric")
+  ...
+  x &lt;- model.matrix(mt, mf, contrasts)
+  ...
+* lm.fit(x, y, ...)
+  ...
+}
+```
+
+---
+# Example: linear regression
+How does `R` fit a linear regression?
+
+second layer: `R` function `lm.fit`
+
+```r
+lm.fit &lt;- function(x, y, ...){
+  ...
+* .Call(C_Cdqrls, x, y, tol, FALSE)
+  ...
+}
+```
+
+third layer: `C` function `Cdqrls`
+
+```r
+SEXP Cdqrls(SEXP x, SEXP y, SEXP tol, SEXP chk)
+```
+
+`SEXP` is the datatype for a generic `R` object
+
+Source: excellent post [A Deep Dive Into How R Fits a Linear Model](https://madrury.github.io/jekyll/update/statistics/2016/07/20/lm-in-R.html), `Cdqrls` [source code](https://github.com/wch/r-source/blob/trunk/src/library/stats/src/lm.c)
+
+
+---
+
+# Why using `C++` in `R`
+
+`C++` is a general-purpose programming language developed initially as an extension of the `C` language that included classes for object-oriented programming. As opposed to `R` or `python`, `C++` is a compiled language and benefit from a fast execution time.
+
+**Examples of ideal situations where to use `Rcpp` are:**
+
+- Loop operations
+- Recursive functions
+- Operations on huge datasets
+- Complex algorithms that need advanced data structures
+
+---
+# Extending `R` with `C++` via `Rcpp`
+`Rcpp` is a popular package. 
+
+&lt;img src="assets/popular_packages.png" width="500" height="374" style="display: block; margin: auto;" /&gt;
+
+source: [KDnuggets](https://www.kdnuggets.com/2015/06/top-20-r-packages.html)
+
+---
+# Extending `R` with `C++` via `Rcpp`
+You do not need to worry about `SEXP` and `.Call()`
+
+&lt;blockquote&gt;
+`Rcpp` can offer what we think is an easier to use and possibly even more consistent interface that is closer to the way `R` programmers work with their data.
+.right[Dirk Eddelbuettel-- &lt;cite&gt;Seamless `R` and `C++`
+Integration with `Rcpp`&lt;/cite&gt;]
+&lt;/blockquote&gt;
+
+---
+
+# Objectives
+
+- Overview of how to measure performance in `R` using profiling and timing tools.
+
+- Overview of how to compile `Rcpp` code and use it in `R`.
+
+- Basics of the `Rcpp` syntax.
+
+- Extensions with the `C++` linear algebra libraries for scientific computing (`Armadillo`)
+
+
+&amp;nbsp;
+
+&lt;img src="assets/thelogo.png" width="350" height="160" style="display: block; margin: auto;" /&gt;
+
+&lt;!-- --- --&gt;
+
+&lt;!-- # Why using `C++` in `R`: Motivations --&gt;
+
+&lt;!-- When working with complex computations in `R`, it is often the case that `R` is simply not fast enough.  --&gt;
+
+&lt;!-- &lt;div align="center"&gt; --&gt;
+&lt;!-- &lt;iframe src="https://giphy.com/embed/pFZTlrO0MV6LoWSDXd" width="410" height="208" frameBorder="0" class="giphy-embed" allowFullScreen&gt;&lt;/iframe&gt;&lt;p&gt;&lt;a href="https://giphy.com/gifs/waiting-mr-bean-checking-time-pFZTlrO0MV6LoWSDXd"&gt;via GIPHY&lt;/a&gt;&lt;/p&gt; --&gt;
+&lt;!--  &lt;/div&gt;  --&gt;
+&lt;!-- &lt;!-- .center[![](assets/wait.gif)] --&gt; 
+
+&lt;!-- &amp;nbsp; --&gt;
+
+
+&lt;!-- In such cases, it is interesting to identify where are the bottleneck in a given code and rewrite these chunks of code in a lower-level language to benefit from faster execution time. --&gt;
+
+
+
+
+
+---
+# Profiling `R` code 
+
+When working on the efficiency of an `R` code it is important to identify which part of the code are the most time consuming so that you focus on improving the performance of these code chunks. 
+
+You can profile `R` code with the use of the packages `Rprof` and `profvis` available with 
+
+```r
+install.packages("profvis")
+```
+
+The syntax to perform a code profiling analysis is then
+
+```r
+profvis({
+  R sequence of execution to profile
+})
+```
+
+Find examples and instructions [here](https://rstudio.github.io/profvis/).
+
+
+---
+# Profiling `R` code 
+
+&lt;iframe src="https://rstudio.github.io/profvis/examples.html" width="100%" height="460px" data-external="1"&gt;&lt;/iframe&gt;
+
+---
+# Measuring computation time in `R`
+
+There exist various ways to measure computation time in `R`. We recommend using the `microbenchmark` package available with
+
+```r
+install.packages("microbenchmark")
+```
+
+Using the function `microbenchmark` of this package, one can obtain an estimate of the computation time of an expression by evaluating it a large number of time.
+
+---
+# Measuring computation time in `R` 
+For example let us consider benchmarking a simple `R` functions:
+
+
+```r
+library(microbenchmark)
+f1 = function(x){sum(exp(x))}
+microbenchmark::microbenchmark(f1)
+```
+
+```
+## Unit: nanoseconds
+##  expr min lq  mean median uq max neval
+##    f1  10 11 16.38     12 12 472   100
+```
+
+These results summarize how long each query took: the minimum (`min`), lower and upper quartiles (`lq` and `uq`, respectively) and the mean, median and maximum, for each of the number of evaluations (`neval`, with the default value of 100 used in this case). `cld` reports the relative rank of each row in the form of 'compact letter display'.
+
+
+
+
+
+---
+# Optimizing `R` code
+
+Before implementing a given code chunk that constitutes a bottleneck in `C++`, one should try to write the `R` code as efficiently as possible. There exists multiple way to improve the performance of an `R` code. 
+
+General advice are for example to declare type and length of data structure explicitly rather then to append to existing data structure as well as to use efficiently implemented `R` functions when possible. 
+
+Hence, there exist different ways to program a function in `R`, and depending on the functions and objects defined, different implementation will have different run-time.
+
+&amp;nbsp;
+
+For a comprehensive discussion on the topic, we recommend [Efficient R programming](https://csgillespie.github.io/efficientR/).
+
+
+
+
+---
+# Optimizing `R` code: Illustration
+To illustrate this notion, let us consider a simple example where we want to construct a vector of length `\(n\)` with the sequence of integers from 1 to `\(n\)`.
+
+&lt;!-- Let us consider a simple example where we consider applying the function `$$f: \mathbb{R}^p \rightarrow \mathbb{R} = n^{-1}\sum_{i=1}^n X_i$$` to each element of a list. --&gt;
+
+
+
+
+
+.pull-left[
+
+.scroll-box-5[
+
+```r
+method1 = function(n) {
+* vec = c()
+  for (i in seq_len(n))
+    vec = c(vec, i)
+  vec
+}
+```
+]]
+.pull-right[
+
+.scroll-box-5[
+
+```r
+method2 = function(n) {
+* vec = vector(mode = "numeric", length = n)
+  for (i in seq_len(n))
+    vec[i] = i
+  vec
+}
+```
+]]
+
+
+
+```r
+n = 1000
+*method3 = function(n) seq_len(n)
+microbenchmark(times = 100, unit = "s",  method1(n), method2(n), method3(n))
+```
+
+```r
+Unit: seconds
+       expr         min           lq          mean       median           uq         max neval cld
+ method1(n) 0.001233401 0.0013296325 0.00177022813 0.0014534635 0.0015910735 0.009250299   100   b
+ method2(n) 0.000046447 0.0000495335 0.00005575704 0.0000550945 0.0000608630 0.000074331   100  a 
+ method3(n) 0.000000394 0.0000005595 0.00000137795 0.0000009735 0.0000014435 0.000016710   100  a 
+```
+
+&lt;!-- --- --&gt;
+
+&lt;!-- `R` is know to be particularly inefficient with iterative loop such as `for` and `while` loop. When computing operations on specific data structures, the `apply()` family of functions proposes a higher level interface to manipulate and execute operations on slices of data structure in a repetitive way rather than by explicit `for` loops. Note however, that `apply()`-type functions are not necessarily faster than `for` loop, but they provide an easy interface such operations and increase code readability. --&gt;
+
+&lt;!-- Find a comprehensive tutorial on the `apply()` family of functions [here](https://www.datacamp.com/community/tutorials/r-tutorial-apply-family). --&gt;
+
+---
+
+# Introduction to `C++` and `Rcpp`
+
+`Rcpp` is an `R` package that makes it very easy to connect `C++` code to `R`. Written by Dirk Eddelbuettel and Romain Francois, `Rcpp` let you compile and use `C++` functions directly in `R`.
+
+You can install `Rcpp` with
+
+```r
+install.packages("Rcpp")
+```
+
+Note that you will also need to install `Rtools` to compile `C++` code. To do so, follow the instructions [here](https://cran.r-project.org/bin/macosx/tools/) if you have a Mac or [here](https://cran.r-project.org/bin/windows/Rtools/) for a Windows system. 
+
+If you are on Linux, depending on your distro, you can use:
+
+```bash
+# RHEL/CentOS
+sudo yum update
+sudo yum install R
+# Ubuntu
+sudo apt-get update
+sudo apt-get install r-base r-base-dev
+```
+
+
+
+---
+# Introduction to `C++` and `Rcpp`
+
+&lt;blockquote&gt;
+`Rcpp` is a package that enables you to implement `R` functions in `C`++. It is easy to use even without deep knowledge of `C`++, because it is implemented so as to write your `C`++ code in a style similar to `R`. And `Rcpp` does not sacrifice execution speed for the ease of use, anyone can get high performance outcome.
+.right[-- &lt;cite&gt;Rcpp for everyone&lt;/cite&gt;]
+&lt;/blockquote&gt;
+
+`Rcpp` provide three ways to embed `C++` code in `R`.
+
+- `sourceCpp()` 
+
+- `cppFunction()` 
+
+- `evalCpp()` 
+
+
+
+---
+# Embedding `Rcpp` code in `R`
+`sourceCpp()` let you source and compile a `.cpp` file inside of an `R` environment.
+
+```r
+sourceCpp("cpp_file.cpp")
+```
+
+
+`cppFunction` let you write an `Rcpp` function directly inside of an `R` environment, for example:
+
+```r
+cppFunction('int add(int x, int y, int z) {
+  int sum = x + y + z;
+  return sum;
+}')
+```
+
+
+
+`evalCpp()` let you evaluate a single `C++` statement inside of an `R` environment.
+
+```r
+evalCpp('std::numeric_limits&lt;double&gt;::max()')
+```
+
+
+For this workshop, we will mostly consider using `sourceCpp()` and writing `C++` code in an specific `.cpp` file as this provide various advantages that we will cover.
+
+---
+# Data types and automatic data conversion in `R`
+
+`R` implement an automatic data conversion when performing operations on different data types.
+
+Hence, you can combine objects of different data types without errors. 
+
+
+```r
+typeof(c(1L,0.25))
+```
+
+```
+## [1] "double"
+```
+
+```r
+typeof(c(1L,"a"))
+```
+
+```
+## [1] "character"
+```
+
+Depending on the function called, automatic data conversion will not be able to transform data correctly.
+
+
+
+```r
+sum(c(1.5,"a",3L))
+```
+
+
+```r
+Error in sum(c(1.5, "a", 3L)) : invalid 'type' (character) of argument
+```
+
+
+---
+# Data types and methods in `C++`
+
+In `C++`, all objects need to be defined with an explicit data types.
+
+Hence, considering a `Rcpp` equivalent of `rep(0,n)` in `R`, we observe that we need to explicitly define the output data type as well as the data type of each objects declared in the function.
+
+```cpp
+*NumericVector create_empty_vector(int n) {
+* NumericVector v (n);
+  return v;
+}
+```
+
+Furthermore, data types are associated with specific methods (also called member functions) that can be called on object. You can call member functions `f()` of object `v` in the form of `v.f()`. For example, a `NumericVector` as the method `length()`.
+
+```cpp
+int get_length_vec(NumericVector x) {
+* int length_vec = x.length();
+  return length_vec;
+}
+```
+
+
+
+---
+
+# Correspondance of data type between `R`, `Rcpp` and `C++`
+
+|Value | R vector|Rcpp vector|Rcpp matrix|Rcpp scalar|C++ scalar|
+|:---:|:---:|:---:|:---:|:---:|:---:|
+|Logical|`logical`  |`LogicalVector`| `LogicalMatrix`| - |`bool`|
+|Integer|`integer`  |`IntegerVector`|`IntegerMatrix`|-|`int`|
+|Real|`numeric` |`NumericVector`|`NumericMatrix`|-|`double`|
+|Complex|`complex`  |`ComplexVector`| `ComplexMatrix`|`Rcomplex`|`complex`|
+|String|`character`|`CharacterVector` (`StringVector`)| `CharacterMatrix` (`StringMatrix`)|`String`|`string`|
+|Date  |`Date`     |`DateVector`|-|`Date`|-|
+|Datetime  |`POSIXct`  |`DatetimeVector`|-| `Datetime` | `time_t` |
+
+---
+# Header of a `.cpp` file 
+
+```cpp
+*#include&lt;Rcpp.h&gt;
+*using namespace Rcpp;
+
+// [[Rcpp::export]]
+RETURN_TYPE FUNCTION_NAME(ARGUMENT_TYPE ARGUMENT){
+
+    //do something
+
+    return RETURN_VALUE;
+}
+```
+
+- `#include&lt;Rcpp.h&gt; ` enables you to use classes and functions defined by the `Rcpp` package.
+
+- `using namespace Rcpp;` specify the namespace. One could omit this argument in the header and prefix all functions and objects defined by `Rcpp` with `Rcpp::`.
+
+- `// [[Rcpp::export]]` import the `Rcpp` function to you `R` global environment.
+
+
+
+---
+# Basic `C++` and `Rcpp` syntax 
+
+`Rcpp` provides a high-level syntax for declaring `C++` functions easily. Here are some example comparing `R` and `Rcpp` syntax for basic operations.
+
+
+
+| Operation| `R` |`Rcpp`|
+|:---:|:---:|:---:|
+| Vector constructor | `x = vector(mode = "numeric", length = 5)` | `NumericVector x(5);` |
+| Vector indexing | `x[1]` | `x(0);` |
+| Matrix constructor |`X = matrix(0,5,5)` |`NumericMatrix X(5, 5);`|
+| Matrix indexing | `X[1,1]` | `X(0,0);` |
+| DataFrame constructor |`df = data.frame("V1" = v1, "V2"= v2)`| `DataFrame df = DataFrame::create( Named("V1") = v1 , _["V2"] = v2 );`|
+
+
+
+&lt;!-- | Indexing vector | `vector(mode = "numeric", length = 5)` | `NumericVector xx(5);` | --&gt;
+
+
+---
+# `Rcpp sugar`
+&lt;blockquote&gt;
+Put succinctly, the motivation of `Rcpp` sugar is to bring a subset of the high-level `R` syntax in `C`++.
+.right[-- &lt;cite&gt;Dirk Eddelbuettel&lt;/cite&gt;]
+&lt;/blockquote&gt;
+
+
+The `Rcpp` library provide a variety of `R`-like functions. This set of functions is defined as `Rcpp sugar`. It provides vectorized procedures, functions for strings, statistical functions and other useful `R`-like functions. Among these functions we can find:
+
+.pull-left[
+**Mathematical function anf ifelse**
+
+```cpp
+IntegerVector x;
+IntegerVector y ;
+abs( x )
+exp( x )
+floor( x )
+ceil( x )
+pow(x, z) # x to the power of z
+ifelse( x &gt; y, x, 2 )
+```
+]
+
+.pull-right[
+**d/q/p/r statistical functions**
+
+
+```cpp
+x1 = dnorm(y1, 0, 1);
+x2 = qnorm(y2, 0, 1);
+x3 = pnorm(y3, 0, 1);
+x4 = rnorm(n, 0, 1);
+```
+
+]
+
+
+.footnote[Similar d/q/p/r functions are provided for the most common distributions:  beta, binom, cauchy, chisq, exp, f, gamma,
+geom, hyper, lnorm, logis, nbeta, nbinom, nbinom_mu, nchisq, nf, norm, nt, pois, t, unif, and weibull.
+]
+
+
+
+
+
+
+
+---
+# Rewriting `R` code in `Rcpp` (examples of functions)
+
+.pull-left[
+
+`R` code
+
+```r
+# cumulative sum of a vector
+cumsum(x)
+
+# row means of a matrix
+rowMeans(X)
+
+# lag difference 
+diff(x,1)
+
+# Fibonacci sequence
+fibo_r &lt;- function(n) {
+  if (n &lt; 2) return(n)
+  return(fibo_r(n-1) + fibo_r(n-2))
+}
+```
+]
+.pull-right[
+`C++` code
+
+.scroll-box-20[
+
+```cpp
+// cumulative sum of a vector
+// [[Rcpp::export]]
+NumericVector cumsum_rcpp(NumericVector x) {
+  double acc = 0;
+  // init an accumulator var
+  NumericVector res(x.size());
+  // init result vector
+  for (int i = 0; i &lt; x.size(); i++){ 
+    acc += x[i];
+    res[i] = acc;
+  }
+  return res;
+}
+
+
+// row means of a matrix
+// [[Rcpp::export]]
+NumericVector row_means_cpp( NumericMatrix&amp; X ) {
+  
+  int nRows = X.nrow();
+  NumericVector out = no_init(nRows);
+  
+  for( int i=0; i &lt; nRows; i++ ) {
+    NumericMatrix::Row tmp = X(i, _);
+    out[i] = do_mean( tmp );
+  }
+  
+  return out;
+  
+}
+
+// lag difference 
+// [[Rcpp::export]]
+NumericVector diff_lag_cpp(NumericVector x, int lag = 1) {
+  int n = x.size();
+  
+  if (lag &gt;= n) stop("`lag` must be less than `length(x)`.");
+  
+  NumericVector out(n - lag);
+  
+  for (int i = lag; i &lt; n; i++) {
+    out[i - lag] = x[i] - x[i - lag];
+  }
+  return out;
+}
+
+// Fibonacci sequence
+// [[Rcpp::export]]
+int fibo_cpp(int n) {
+  if (n &lt; 2) return(n);
+  return(fibo_cpp(n-1) + fibo_cpp(n-2)); 
+}
+
+```
+]]
+
+
+---
+# A note on `for` loop
+
+`R` is known to be particularly inefficient with iterative loop such as `for` and `while` loops.
+When you have such iterative control structure in your code and want to increase performance, it is a good strategy to rewrite these code chunks in `Rcpp`.
+
+`for` loops in `C++` have a slightly different syntax than in `R`.
+
+.pull-left[
+
+```r
+print_i_r = function(i){
+* for(j in 1:i){
+    print(j)
+  }
+}
+print_i_r(3)
+```
+
+
+```r
+1
+2
+3
+```
+
+
+]
+
+.pull-right[
+
+```cpp
+void print_i_cpp(int i) {
+* for(int j = 1; j&lt;=i; j ++){
+    Rcout &lt;&lt; j  &lt;&lt; "\n";
+  }
+}
+print_i_cpp(3)
+```
+
+
+```r
+1
+2
+3
+```
+]
+
+
+---
+# `C++` libraries
+
+
+Similarly as in `R`, there exists a variety of external libraries that can be loaded and used in combination with `Rcpp`.
+
+In `R` one would load an external library (package) with
+
+```r
+library(name_of_the_external_library)
+```
+
+Similarly, one can load an external `C++` library by specifying in the header of a `.cpp` file with:
+
+
+```cpp
+#include &lt;name_of_the_external_library&gt;
+```
+
+An analogue of [base](https://stat.ethz.ch/R-manual/R-devel/library/base/html/base-package.html) `R` in `C++` is the `C++` Standard Library (`std`). `std` is a collection of classes and functions written in the core language. One can use functions from `std` in a `Rcpp` script by specifying the prefix `std::` before a function.
+
+
+
+---
+# Including support for `Armadillo`  .pull-right-narrow[![](assets/armadillo_logo2.png)]
+
+`Armadillo` is a `C++` library for linear algebra and scientific programming. It provides a high-level syntax and efficient functions to work with data that can be stored in vectors, matrices, cubes, dense and sparse matrices. The `R` package `RcppArmadillo` provides an interface from `R` to and from `Armadillo` by utilising the `Rcpp` `R`/`C++` interface library. Install it with:
+
+
+
+```r
+install.packages("RcppArmadillo") # install RcppArmadillo
+```
+
+One can source a `.cpp` file that makes use of `Armadillo` by specifying the following arguments in the header of the `.cpp` file:
+
+
+```cpp
+*#include &lt;RcppArmadillo.h&gt;
+*// [[Rcpp::depends(RcppArmadillo)]]
+*using namespace Rcpp;
+```
+
+
+`[[Rcpp::depends(RcppArmadillo)]]` ensures that `sourceCpp()` can compile and load the `RcppArmadillo` headers.
+
+
+---
+# `Armadillo` basic syntax
+
+| Operation| R |Armadillo|
+|:---:|:---:|:---:|
+| Matrix constructor |`X = matrix(1,10,10)` |`X = ones(10,10)`|
+|Matrix dimensions | `nrow(X)` and `ncol(X)`| `X.n_rows` and `X.n_cols` | 
+|Matrix indexing | `X[1,1] `| `X(0,0)`| 
+|Matrix transpose | `t(X)`| `x.t()`| 
+|Extract matrix row or column | `X[, p:q]` and `X[, p:q]` | `X.cols(p, q)` and `X.rows(p, q)`| 
+|Matrix joins operations | `X = cbind(A, B)` and `X = rbind(A, B)`| `X = join_horiz(A,B)` and `X = join_vert(A,B)` |
+| Vector constructor| `x = numeric(10)`| `x = vec(10)`| 
+| Vector dimension| `length(x)`| `x.n_elem`| 
+
+.footnote[Note that we don't specify the `arma::` prefix that need to be specified when using `using namespace Rcpp;`
+]
+
+
+
+
+
+---
+# Case study: The Haar Wavelet Variance 
+
+We consider a real case application of rewriting `R` code in `C++` code.
+For this example, we will consider a naive implementation of an estimator of the **Haar Wavelet Variance**.
+
+This statistical quantity is used in the context of inference of time series models. 
+
+Let `\(F_{\boldsymbol{\theta}}, \boldsymbol{\theta} \in \Theta \subseteq \mathbb{R}^{p}\)` be the true data generating process of a univariate time series `\(\left\{Y_{t} ; t \in \mathbb{Z}\right\}\)`, the Generalized Method of Wavelet Moment (GMWM) estimator,  `\(\boldsymbol{\hat{\theta}}\)`,  exploits the mapping between `\(\boldsymbol{\theta}\)` and the Wavelet Variance `\(\boldsymbol{\nu}\)` by minimizing the distance between the empirical and estimated Wavelet Variance. 
+
+Hence, the GMWM estimator is defined as
+$$
+\hat{\boldsymbol{\theta}}=\underset{\boldsymbol{\theta} \in \boldsymbol{\Theta}}{\operatorname{argmin}}(\hat{\boldsymbol{\nu}}-\boldsymbol{\nu}(\boldsymbol{\theta}))^{T} \boldsymbol{\Omega}(\hat{\boldsymbol{\nu}}-\boldsymbol{\nu}(\boldsymbol{\theta}))
+$$
+
+
+where `\(\hat{\boldsymbol{\nu}}\)` is the empirical (estimated Wavelet Variance), `\({\boldsymbol{\nu}}\)` the theoretical (model-implied) Wavelet Variance and `\({\boldsymbol{\Omega}}\)` is a positive definite matrix.
+
+
+
+See (Guerrier, Skaloud, Stebler, and Victoria-Feser, 2013) for a comprehensive discussion on GMWM estimator.
+
+
+---
+# Case study: The Haar Wavelet Variance 
+&lt;div align = "center"&gt;
+&lt;img src="assets/wvar_fit_img.png" width="85%"/&gt;
+&lt;/div&gt;
+
+
+
+---
+
+# Case study: The Haar Wavelet Variance
+
+
+
+A simple algorithm to compute an estimator of the Wavelet Variance provide an interesting case study as it provide an example on how to mix the use of different `Rcpp` functions and `arma::` classes.
+
+**Algorithm**
+
+Let `\(Y_t,  t \in \{1, \ldots, T\}\)` be a time series.
+
+Set `\(J = log_2(T)-1\)` and scale `\(\tau_j = 2^j\)` where `\(j \in \{1, \ldots, J\}\)` 
+
+For each scale `\(\tau_j\)`:
+
+`\(\hspace{.8cm}\)` Compute the Wavelet coefficients defined as `\(\bar{W}_{j, t}=\sum_{l=0}^{L_{j}-1} \tilde{h}_{j, l} y_{t-l}, t \in \mathbb{Z}\)` where `\(\tilde{h}_{j,l}\)` is the Haar wavelet `\(\hspace{.8cm}\)`  filter for scale `\(\tau_j = 2^{j}\)` and `\(L_j = T-2^j+1\)`
+
+`\(\hspace{.8cm}\)` We define the estimated Wavelet Variance for scale `\(j\)`, noted `\(\hat{\nu}^2(\tau_j)\)` as `\(\text{var}(\bar{W}_{j, t})\)`
+
+&amp;nbsp;
+
+ See (Percival, 1995) for a comprehensive discussion on the estimation of the Wavelet Variance.
+
+---
+
+
+# Case study: The Haar Wavelet filter
+
+The Wavelet Variance can be interpreted as the variance of a process after
+it has been subject to an approximate bandpass filter.
+
+The Haar wavelet's mother wavelet function can be defined as
+`$$\psi(t)=\left\{\begin{array}{ll}
+1 &amp; 0 \leq t&lt;\frac{1}{2} \\
+-1 &amp; \frac{1}{2} \leq t&lt;1 \\
+0 &amp; \text { otherwise }
+\end{array}\right.$$`
+
+&lt;!-- ![](assets/wvar_graph.png) --&gt;
+.pull-left[
+&lt;div align = "left"&gt;
+&lt;img src="assets/haar_filter_2_2.png" width="110%"/&gt;
+&lt;/div&gt;
+
+]
+
+.pull-right[
+&lt;div align = "right"&gt;
+&lt;img src="assets/haar_filter_2.png" width="60%"/&gt;
+&lt;/div&gt;
+]
+
+
+See (Schimmack, Nguyen, and Mercorelli, 2016) for a comprehensive discussion on the anatomy and properties of the Haar Wavelet filter.
+
+---
+
+# Case study: The Haar Wavelet Variance
+
+
+&lt;!-- ![](assets/wvar_graph.png) --&gt;
+&lt;div align = "center"&gt;
+&lt;img src="assets/wvar_graph.png" width="90%"/&gt;
+&lt;/div&gt;
+
+
+---
+# Case study: The Haar Wavelet Variance 
+
+.pull-left[
+`R` code
+.scroll-box-14[
+
+```r
+wvar_r = function(Xt){
+  tsl = length(Xt)
+  #define J
+  J = log(tsl, 2) %&gt;% floor()
+  #create list to store elements
+  haar_coeff_list = list()
+  all_j =   J %&gt;% seq()
+  #define all scales
+  scales = 2^all_j
+  for(i_j in all_j){
+    i_scale = scales[i_j]
+    length_haar_transfo = tsl - 2^i_j + 1
+    
+    #define positive and negative yt
+    coef_length = seq(length_haar_transfo)
+    coef_scale_i = vector(length =length_haar_transfo, mode = "numeric")
+    for(cl in coef_length){
+      #define all position
+      pos_scale_i = seq(cl, i_scale+cl-1)
+      #define t/2 for scale j
+      mid_id = length(pos_scale_i)/2
+      #define left and right position
+      pos_id = pos_scale_i[1:mid_id] 
+      neg_id =  tail(pos_scale_i,length(pos_scale_i)/2)
+      #calculate haar coefficient define as the weighted mean where weight equal -1, 1
+      xt_neg = Xt[neg_id] * -1
+      xt_pos = Xt[pos_id] 
+      xt_weighted = c(xt_neg, xt_pos)
+      coef_scale_i[cl] = mean(xt_weighted)
+    }
+    #append to growing vector
+    haar_coeff_list[[i_j]] = coef_scale_i
+  }
+  #calculate wavelet variance
+  wvariance = vector(mode = "numeric", length = length(all_j))
+  for(i in seq(length(all_j))){
+    haar_coef = haar_coeff_list[[i]]
+    wvariance[i] = t(haar_coef) %*% haar_coef / length(haar_coef)
+  }
+  #return haar coefficients and wvariance
+  return(wvariance)
+}
+```
+]]
+.pull-right[
+`C++` code
+.scroll-box-14[
+
+```cpp
+arma::colvec wvar_cpp(arma::vec Xt) {
+  int tsl = Xt.n_elem;
+  // define J
+  int J = floor(log(tsl) / log(2));
+  //create list to store elements
+  List haar_coef_list = List::create();
+  IntegerVector all_j = seq_len( J );
+  for(int i_j = 1; i_j &lt;= J; i_j++) {
+    // Define scale tau
+    double i_scale = pow(2,i_j);
+    int length_haar_transfo = tsl - i_scale + 1;
+    //  create empty vector to fill
+    NumericVector coef_scale_i (length_haar_transfo);
+    for(int cl = 1; cl &lt;= length_haar_transfo; cl++) {
+      arma::vec pos_scale_i = arma::linspace(cl-1, i_scale +cl -2,  i_scale );
+      //  define negative, positive and mid id
+      int mid_id = pos_scale_i.n_elem/2 ;
+      arma::vec neg_id = pos_scale_i.tail(mid_id);
+      arma::vec pos_id = pos_scale_i.head(mid_id);
+      // Convert to position to arma uvec
+      arma::uvec pos_id_2 = arma::conv_to&lt;arma::uvec&gt;::from(pos_id);
+      arma::uvec neg_id_2 = arma::conv_to&lt;arma::uvec&gt;::from(neg_id);
+      // extract from vector
+      arma::vec xt_neg =  Xt.elem(neg_id_2) * -1;
+      arma::vec xt_pos =  Xt.elem(pos_id_2) ;
+      //  compute coefficient
+      arma::vec xt_weighted = join_cols(xt_neg, xt_pos);
+      coef_scale_i(cl-1) = mean(xt_weighted);
+    }
+    // append to rcpp list
+    haar_coef_list.push_back(coef_scale_i);
+    }
+  //  create empty vector for wavelet variance
+  arma::colvec wvariance (J);
+  // populate wvariance with wavelet variance 
+  // computed on coefficient for each scale j
+  for(int i = 0; i &lt; J; i++) {
+    arma::vec haar_coef = haar_coef_list[i];
+    wvariance.row(i) = haar_coef.t() * haar_coef / haar_coef.n_elem;
+  }
+  return wvariance;
+  
+}
+```
+]]
+
+
+
+---
+# Case study: The Haar Wavelet Variance 
+### Performance gain
+
+&lt;img src="slides_r_lunch_rcpp_files/figure-html/unnamed-chunk-53-1.png" style="display: block; margin: auto;" /&gt;
+
+
+
+
+---
+
+# Parallelisation with openMPI
+
+`openMPI` is an API that enables parallelization of `C++` code. One can specify the dependency in the `.cpp` header file with: 
+
+
+```cpp
+# include &lt;RcppArmadillo.h&gt;
+// [[Rcpp::depends(RcppArmadillo)]]
+*# include &lt;omp.h&gt;
+*// [[Rcpp::plugins(openmp)]]
+```
+
+It is then possible to parallelize an independent `for` loop with:
+
+
+```cpp
+// [[Rcpp::export()]]
+void omp2 (int n_threads = 1) { 
+* omp_set_num_threads(n_threads) ;
+* # pragma omp parallel for
+  for (int i = 0 ; i &lt; 10 ; i++) {
+    Rcout &lt;&lt; " " &lt;&lt; i &lt;&lt; " " ;
+  }
+}
+
+```
+
+To go further, check the post [Parallelization in rcpp via OpenMP](https://wbnicholson.wordpress.com/2014/07/10/parallelization-in-rcpp-via-openmp/)
+
+---
+# Take aways
+
+- `R` is an interpreted language that allows fast development with a high-level syntax, but suffer from a slow run-time compared to lower-level languages. Many core `R` functions are already implemented in `Fortran` or `C`.
+
+- There exists various ways to write an algorithm in `R`, and depending on the syntax, the object created and the functions called, different approach will lead to different performances.
+
+- When working on improving the run time of an `R` code, one should identify the bottlenecks and measure the execution of the implementation using profiling and benchmark tools.
+
+- `Rcpp` is a package that allows to interface `R` with `C++`. `Rcpp` provides already implemented classes and `R`-like functions for an easier development.
+
+- There exists various external `C++` libraries that can be loaded and used in combination with `Rcpp`, such as for example linear algebra and scientific computing libraries such as `Armadillo` and `Eigen`. 
+
+---
+
+# Ressources (to go further)
+
+- [Rcpp for everyone](https://teuder.github.io/rcpp4everyone_en/)
+
+- [Advanced R](https://adv-r.hadley.nz/)
+
+- [Seamless R and C++ Integration with Rcpp](https://www.springer.com/gp/book/9781461468677)
+
+- [Efficient R programming](https://csgillespie.github.io/efficientR/)
+
+- [Extending R](https://www.routledge.com/Extending-R/Chambers/p/book/9781498775717)
+
+- [Armadillo documentation](http://arma.sourceforge.net/docs.html)
+---
+
+
+# References
+Chambers, J. M. (2017). _Extending R_. CRC Press.
+
+Guerrier, S., J. Skaloud, Y. Stebler, et al. (2013).
+"Wavelet-variance-based estimation for composite stochastic processes".
+In: _Journal of the American Statistical Association_ 108.503, pp.
+1021-1030.
+
+Percival, D. P. (1995). "On estimation of the wavelet variance". In:
+_Biometrika_ 82.3, pp. 619-631.
+
+Schimmack, M., S. Nguyen, and P. Mercorelli (2016). "Anatomy of haar
+wavelet filter and its implementation for signal processing". In:
+_IFAC-PapersOnLine_ 49.6, pp. 99-104.
+
+
+---
+class: sydney-blue, center, middle
+
+
+# Thank you !
+### Any questions?
+
+.pull-down[
+&lt;a href="mailto:lionel.voirol@unige.ch"&gt;
+.white[&lt;svg viewBox="0 0 512 512" style="height:1em;position:relative;display:inline-block;top:.1em;" xmlns="http://www.w3.org/2000/svg"&gt;  &lt;path d="M440 6.5L24 246.4c-34.4 19.9-31.1 70.8 5.7 85.9L144 379.6V464c0 46.4 59.2 65.5 86.6 28.6l43.8-59.1 111.9 46.2c5.9 2.4 12.1 3.6 18.3 3.6 8.2 0 16.3-2.1 23.6-6.2 12.8-7.2 21.6-20 23.9-34.5l59.4-387.2c6.1-40.1-36.9-68.8-71.5-48.9zM192 464v-64.6l36.6 15.1L192 464zm212.6-28.7l-153.8-63.5L391 169.5c10.7-15.5-9.5-33.5-23.7-21.2L155.8 332.6 48 288 464 48l-59.4 387.3z"&gt;&lt;/path&gt;&lt;/svg&gt; Lionel.Voirol@unige.ch]
+&lt;/a&gt;
+
+
+
+&lt;a href="http://github.com/lionelvoirol"&gt;
+.white[&lt;svg viewBox="0 0 496 512" style="height:1em;position:relative;display:inline-block;top:.1em;" xmlns="http://www.w3.org/2000/svg"&gt;  &lt;path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"&gt;&lt;/path&gt;&lt;/svg&gt; @lionelvoirol]
+&lt;/a&gt;
+
+
+&lt;a href="mailto:samuel.orso@unige.ch"&gt;
+.white[&lt;svg viewBox="0 0 512 512" style="height:1em;position:relative;display:inline-block;top:.1em;" xmlns="http://www.w3.org/2000/svg"&gt;  &lt;path d="M440 6.5L24 246.4c-34.4 19.9-31.1 70.8 5.7 85.9L144 379.6V464c0 46.4 59.2 65.5 86.6 28.6l43.8-59.1 111.9 46.2c5.9 2.4 12.1 3.6 18.3 3.6 8.2 0 16.3-2.1 23.6-6.2 12.8-7.2 21.6-20 23.9-34.5l59.4-387.2c6.1-40.1-36.9-68.8-71.5-48.9zM192 464v-64.6l36.6 15.1L192 464zm212.6-28.7l-153.8-63.5L391 169.5c10.7-15.5-9.5-33.5-23.7-21.2L155.8 332.6 48 288 464 48l-59.4 387.3z"&gt;&lt;/path&gt;&lt;/svg&gt; Samuel.Orso@unige.ch]
+&lt;/a&gt;
+
+
+
+&lt;a href="http://github.com/samorso"&gt;
+.white[&lt;svg viewBox="0 0 496 512" style="height:1em;position:relative;display:inline-block;top:.1em;" xmlns="http://www.w3.org/2000/svg"&gt;  &lt;path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"&gt;&lt;/path&gt;&lt;/svg&gt; @samorso]
+&lt;/a&gt;
+
+
+&lt;a href="https://github.com/SMAC-Group/r_lunch_rcpp"&gt;
+.white[&lt;svg viewBox="0 0 576 512" style="height:1em;position:relative;display:inline-block;top:.1em;" xmlns="http://www.w3.org/2000/svg"&gt;  &lt;path d="M480 416v16c0 26.51-21.49 48-48 48H48c-26.51 0-48-21.49-48-48V176c0-26.51 21.49-48 48-48h16v48H54a6 6 0 0 0-6 6v244a6 6 0 0 0 6 6h372a6 6 0 0 0 6-6v-10h48zm42-336H150a6 6 0 0 0-6 6v244a6 6 0 0 0 6 6h372a6 6 0 0 0 6-6V86a6 6 0 0 0-6-6zm6-48c26.51 0 48 21.49 48 48v256c0 26.51-21.49 48-48 48H144c-26.51 0-48-21.49-48-48V80c0-26.51 21.49-48 48-48h384zM264 144c0 22.091-17.909 40-40 40s-40-17.909-40-40 17.909-40 40-40 40 17.909 40 40zm-72 96l39.515-39.515c4.686-4.686 12.284-4.686 16.971 0L288 240l103.515-103.515c4.686-4.686 12.284-4.686 16.971 0L480 208v80H192v-48z"&gt;&lt;/path&gt;&lt;/svg&gt; SMAC-Group/r_lunch_rcpp]
+&lt;/a&gt;
+
+]
+
+
+
+
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script src="assets/remark-zoom.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false,
+"ratio": "16:9",
+"navigation": {
+"scroll": false
+}
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+// add `data-at-shortcutkeys` attribute to <body> to resolve conflicts with JAWS
+// screen reader (see PR #262)
+(function(d) {
+  let res = {};
+  d.querySelectorAll('.remark-help-content table tr').forEach(tr => {
+    const t = tr.querySelector('td:nth-child(2)').innerText;
+    tr.querySelectorAll('td:first-child .key').forEach(key => {
+      const k = key.innerText;
+      if (/^[a-z]$/.test(k)) res[k] = t;  // must be a single letter (key)
+    });
+  });
+  d.body.setAttribute('data-at-shortcutkeys', JSON.stringify(res));
+})(document);
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>
